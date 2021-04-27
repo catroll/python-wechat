@@ -10,12 +10,12 @@ from .base import WechatError, Map
 from collections import namedtuple
 
 
-__all__ = ("Wechat")
-__author__ = "Weicheng Zou <zwczou@gmail.com>"
-__version__ = "0.5.7"
+__all__ = ('Wechat')
+__author__ = 'Weicheng Zou <zwczou@gmail.com>'
+__version__ = '0.5.7'
 
 
-StandaloneApplication = namedtuple("StandaloneApplication", ["config"])
+StandaloneApplication = namedtuple('StandaloneApplication', ['config'])
 
 
 class Wechat(WechatLogin, WechatPay, WechatMP, WechatMsg):
@@ -35,16 +35,16 @@ class Wechat(WechatLogin, WechatPay, WechatMP, WechatMsg):
         if isinstance(app, dict):
             app = StandaloneApplication(config=app)
 
-        token = app.config.get("WEIXIN_TOKEN")
+        token = app.config.get('WEIXIN_TOKEN')
         sender = app.config.get('WEIXIN_SENDER', None)
         expires_in = app.config.get('WEIXIN_EXPIRES_IN', 0)
-        mch_id = app.config.get("WEIXIN_MCH_ID")
-        mch_key = app.config.get("WEIXIN_MCH_KEY")
-        notify_url = app.config.get("WEIXIN_NOTIFY_URL")
-        mch_key_file = app.config.get("WEIXIN_MCH_KEY_FILE")
-        mch_cert_file = app.config.get("WEIXIN_MCH_CERT_FILE")
-        app_id = app.config.get("WEIXIN_APP_ID")
-        app_secret = app.config.get("WEIXIN_APP_SECRET")
+        mch_id = app.config.get('WEIXIN_MCH_ID')
+        mch_key = app.config.get('WEIXIN_MCH_KEY')
+        notify_url = app.config.get('WEIXIN_NOTIFY_URL')
+        mch_key_file = app.config.get('WEIXIN_MCH_KEY_FILE')
+        mch_cert_file = app.config.get('WEIXIN_MCH_CERT_FILE')
+        app_id = app.config.get('WEIXIN_APP_ID')
+        app_secret = app.config.get('WEIXIN_APP_SECRET')
         if token:
             WechatMsg.__init__(self, token, sender, expires_in)
         if app_id and mch_id and mch_key and notify_url:

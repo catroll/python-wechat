@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 
 
-__all__ = ("Map", "WechatError")
+__all__ = ('Map', 'WechatError')
 
 
 try:

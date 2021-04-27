@@ -23,7 +23,7 @@ except Exception:
 from lxml import etree
 
 
-__all__ = ("WechatMsgError", "WechatMsg")
+__all__ = ('WechatMsgError', 'WechatMsg')
 
 
 class WechatMsgError(WechatError):
@@ -42,7 +42,7 @@ class WechatMsg(object):
 
     def validate(self, signature, timestamp, nonce):
         if not self.token:
-            raise WechatMsgError("weixin token is missing")
+            raise WechatMsgError('weixin token is missing')
 
         if self.expires_in:
             try:
@@ -54,7 +54,7 @@ class WechatMsg(object):
                 return False
         values = [self.token, str(timestamp), str(nonce)]
         s = ''.join(sorted(values))
-        hsh = hashlib.sha1(s.encode("utf-8")).hexdigest()
+        hsh = hashlib.sha1(s.encode('utf-8')).hexdigest()
         return signature == hsh
 
     def parse(self, content):
@@ -142,7 +142,7 @@ class WechatMsg(object):
 
     def reply(self, username=None, type='text', sender=None, **kwargs):
         if not username:
-            raise RuntimeError("username is missing")
+            raise RuntimeError('username is missing')
         sender = sender or self.sender
         if not sender:
             raise RuntimeError('WEIXIN_SENDER or sender argument is missing')
@@ -213,7 +213,7 @@ class WechatMsg(object):
                    'user_pay_from_pay_cell', 'user_view_card', 'user_enter_session_from_card', \
                    'card_sku_remind']:
             return self.register('event', key)
-        raise AttributeError('invalid attribute "' + key + '"')
+        raise AttributeError('invalid attribute '' + key + ''')
 
     def django_view_func(self):
 
@@ -229,7 +229,7 @@ class WechatMsg(object):
             if request.method == 'GET':
                 echostr = request.GET.get('echostr', '')
                 return HttpResponse(echostr)
-            elif request.method == "POST":
+            elif request.method == 'POST':
                 try:
                     ret = self.parse(request.body)
                 except ValueError:

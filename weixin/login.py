@@ -9,7 +9,7 @@ import requests
 from .base import Map, WechatError
 
 
-__all__ = ("WechatLoginError", "WechatLogin")
+__all__ = ('WechatLoginError', 'WechatLogin')
 
 
 class WechatLoginError(WechatError):
@@ -27,13 +27,13 @@ class WechatLogin(object):
 
     def _get(self, url, params):
         resp = self.sess.get(url, params=params)
-        data = Map(json.loads(resp.content.decode("utf-8")))
+        data = Map(json.loads(resp.content.decode('utf-8')))
         if data.errcode:
-            msg = "%(errcode)d %(errmsg)s" % data
+            msg = '%(errcode)d %(errmsg)s' % data
             raise WechatLoginError(msg)
         return data
 
-    def authorize(self, redirect_uri, scope="snsapi_base", state=None):
+    def authorize(self, redirect_uri, scope='snsapi_base', state=None):
         """
         生成微信认证地址并且跳转
 
@@ -41,29 +41,29 @@ class WechatLogin(object):
         :param scope: 微信认证方式，有`snsapi_base`跟`snsapi_userinfo`两种
         :param state: 认证成功后会原样带上此字段
         """
-        url = "https://open.weixin.qq.com/connect/oauth2/authorize"
-        assert scope in ["snsapi_base", "snsapi_userinfo"]
+        url = 'https://open.weixin.qq.com/connect/oauth2/authorize'
+        assert scope in ['snsapi_base', 'snsapi_userinfo']
         data = dict()
-        data.setdefault("appid", self.app_id)
-        data.setdefault("redirect_uri", redirect_uri)
-        data.setdefault("response_type", "code")
-        data.setdefault("scope", scope)
+        data.setdefault('appid', self.app_id)
+        data.setdefault('redirect_uri', redirect_uri)
+        data.setdefault('response_type', 'code')
+        data.setdefault('scope', scope)
         if state:
-            data.setdefault("state", state)
+            data.setdefault('state', state)
         data = [(k, data[k]) for k in sorted(data.keys()) if data[k]]
-        s = "&".join("=".join(kv) for kv in data if kv[1])
-        return "{0}?{1}#wechat_redirect".format(url, s)
+        s = '&'.join('='.join(kv) for kv in data if kv[1])
+        return '{0}?{1}#wechat_redirect'.format(url, s)
 
     def access_token(self, code):
         """
         获取令牌
         """
-        url = "https://api.weixin.qq.com/sns/oauth2/access_token"
+        url = 'https://api.weixin.qq.com/sns/oauth2/access_token'
         args = dict()
-        args.setdefault("appid", self.app_id)
-        args.setdefault("secret", self.app_secret)
-        args.setdefault("code", code)
-        args.setdefault("grant_type", "authorization_code")
+        args.setdefault('appid', self.app_id)
+        args.setdefault('secret', self.app_secret)
+        args.setdefault('code', code)
+        args.setdefault('grant_type', 'authorization_code')
 
         return self._get(url, args)
 
@@ -74,10 +74,10 @@ class WechatLogin(object):
         :param access_token: 授权凭证
         :param openid: 唯一id
         """
-        url = "https://api.weixin.qq.com/sns/auth"
+        url = 'https://api.weixin.qq.com/sns/auth'
         args = dict()
-        args.setdefault("access_token", access_token)
-        args.setdefault("openid", openid)
+        args.setdefault('access_token', access_token)
+        args.setdefault('openid', openid)
 
         return self._get(url, args)
 
@@ -87,11 +87,11 @@ class WechatLogin(object):
 
         :param refresh_token: 刷新令牌
         """
-        url = "https://api.weixin.qq.com/sns/oauth2/refresh_token"
+        url = 'https://api.weixin.qq.com/sns/oauth2/refresh_token'
         args = dict()
-        args.setdefault("appid", self.app_id)
-        args.setdefault("grant_type", "refresh_token")
-        args.setdefault("refresh_token", refresh_token)
+        args.setdefault('appid', self.app_id)
+        args.setdefault('grant_type', 'refresh_token')
+        args.setdefault('refresh_token', refresh_token)
 
         return self._get(url, args)
 
@@ -102,11 +102,11 @@ class WechatLogin(object):
         :param access_token: 令牌
         :param openid: 用户id，每个应用内唯一
         """
-        url = "https://api.weixin.qq.com/sns/userinfo"
+        url = 'https://api.weixin.qq.com/sns/userinfo'
         args = dict()
-        args.setdefault("access_token", access_token)
-        args.setdefault("openid", openid)
-        args.setdefault("lang", "zh_CN")
+        args.setdefault('access_token', access_token)
+        args.setdefault('openid', openid)
+        args.setdefault('lang', 'zh_CN')
 
         return self._get(url, args)
 
@@ -122,10 +122,10 @@ class WechatLogin(object):
         """
         小程序获取 session_key 和 openid
         """
-        url = "https://api.weixin.qq.com/sns/jscode2session"
+        url = 'https://api.weixin.qq.com/sns/jscode2session'
         args = dict()
-        args.setdefault("appid", self.app_id)
-        args.setdefault("secret", self.app_secret)
-        args.setdefault("js_code", js_code)
-        args.setdefault("grant_type", "authorization_code")
+        args.setdefault('appid', self.app_id)
+        args.setdefault('secret', self.app_secret)
+        args.setdefault('js_code', js_code)
+        args.setdefault('grant_type', 'authorization_code')
         return self._get(url, args)

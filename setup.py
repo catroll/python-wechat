@@ -36,8 +36,8 @@ setup(
     zip_safe=False,
     platforms='any',
     install_requires=[
-        "requests",
-        "lxml"
+        'requests',
+        'lxml"
     ],
     classifiers=[],
 )
