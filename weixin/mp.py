@@ -3,16 +3,16 @@
 
 from __future__ import unicode_literals
 
-import os
-import time
-import json
 import hashlib
-import string
+import json
+import os
 import random
+import string
+import time
+
 import requests
 
 from .base import WechatError
-
 
 __all__ = ('WechatMPError', 'WechatMP')
 

@@ -3,25 +3,24 @@
 
 from __future__ import unicode_literals
 
-import time
 import hashlib
-
+import time
 from datetime import datetime
 
 from .base import WechatError
 
 try:
-    from flask import request, Response
+    from flask import Response, request
 except ImportError:
     request, Response = None, None
 
 try:
-    from django.http import HttpResponse, HttpResponseForbidden, HttpResponseNotAllowed
+    from django.http import (HttpResponse, HttpResponseForbidden,
+                             HttpResponseNotAllowed)
 except Exception:
     HttpResponse, HttpResponseForbidden, HttpResponseNotAllowed = None, None, None
 
 from lxml import etree
-
 
 __all__ = ('WechatMsgError', 'WechatMsg')
 
@@ -204,13 +203,13 @@ class WechatMsg(object):
         key = key.lower()
         if key in ['image', 'video', 'voice', 'shortvideo', 'location', 'link', 'event']:
             return self.register(key)
-        if key in ['subscribe', 'unsubscribe', 'location', 'click', 'view', 'scan', \
-                   'scancode_push', 'scancode_waitmsg', 'pic_sysphoto', \
-                   'pic_photo_or_album', 'pic_weixin', 'location_select', \
-                   'qualification_verify_success', 'qualification_verify_fail', 'naming_verify_success', \
-                   'naming_verify_fail', 'annual_renew', 'verify_expired', \
-                   'card_pass_check', 'user_get_card', 'user_del_card', 'user_consume_card', \
-                   'user_pay_from_pay_cell', 'user_view_card', 'user_enter_session_from_card', \
+        if key in ['subscribe', 'unsubscribe', 'location', 'click', 'view', 'scan',
+                   'scancode_push', 'scancode_waitmsg', 'pic_sysphoto',
+                   'pic_photo_or_album', 'pic_weixin', 'location_select',
+                   'qualification_verify_success', 'qualification_verify_fail', 'naming_verify_success',
+                   'naming_verify_fail', 'annual_renew', 'verify_expired',
+                   'card_pass_check', 'user_get_card', 'user_del_card', 'user_consume_card',
+                   'user_pay_from_pay_cell', 'user_view_card', 'user_enter_session_from_card',
                    'card_sku_remind']:
             return self.register('event', key)
         raise AttributeError('invalid attribute '' + key + ''')

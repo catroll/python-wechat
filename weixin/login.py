@@ -4,10 +4,10 @@
 from __future__ import unicode_literals
 
 import json
+
 import requests
 
 from .base import WechatError
-
 
 __all__ = ('WechatLoginError', 'WechatLogin')
 

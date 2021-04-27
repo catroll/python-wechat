@@ -3,10 +3,11 @@
 
 from __future__ import unicode_literals
 
-import time
-import string
-import random
 import hashlib
+import random
+import string
+import time
+
 import requests
 
 from .base import WechatError
@@ -17,7 +18,6 @@ except Exception:
     request = None
 
 from lxml import etree
-
 
 __all__ = ('WechatPayError', 'WechatPay')
 

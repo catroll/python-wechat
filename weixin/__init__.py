@@ -1,14 +1,13 @@
 # -*- coding: utf-8 -*-
 
 
-from .msg import WechatMsg
-from .pay import WechatPay
-from .login import WechatLogin
-from .mp import WechatMP
-from .base import WechatError
-
 from collections import namedtuple
 
+from .base import WechatError
+from .login import WechatLogin
+from .mp import WechatMP
+from .msg import WechatMsg
+from .pay import WechatPay
 
 __all__ = ('Wechat')
 __author__ = 'Weicheng Zou <zwczou@gmail.com>'
@@ -24,6 +23,7 @@ class Wechat(WechatLogin, WechatPay, WechatMP, WechatMsg):
 
     :param app 如果非flask，传入字典配置，如果是flask直接传入app实例
     """
+
     def __init__(self, app=None):
         if app is not None:
             if isinstance(app, dict):
