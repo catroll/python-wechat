@@ -5,7 +5,7 @@ from .msg import WechatMsg
 from .pay import WechatPay
 from .login import WechatLogin
 from .mp import WechatMP
-from .base import WechatError, Map
+from .base import WechatError
 
 from collections import namedtuple
 

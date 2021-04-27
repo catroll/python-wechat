@@ -11,7 +11,7 @@ import string
 import random
 import requests
 
-from .base import Map, WechatError
+from .base import WechatError
 
 
 __all__ = ('WechatMPError', 'WechatMP')
@@ -80,8 +80,8 @@ class WechatMP(object):
                                data=data, headers=headers)
         prepped = req.prepare()
         resp = self.session.send(prepped, timeout=20)
-        data = Map(resp.json())
-        if data.errcode:
+        data = resp.json()
+        if data['errcode']:
             msg = '%(errcode)d %(errmsg)s' % data
             raise WechatMPError(msg)
         return data
@@ -132,8 +132,8 @@ class WechatMP(object):
             params.setdefault('secret', self.app_secret)
             data = self.get('/token', params, False)
             with open(self.ac_path, 'wb') as fp:
-                fp.write(data.access_token.encode('utf-8'))
-            os.utime(self.ac_path, (timestamp, timestamp + data.expires_in - 600))
+                fp.write(['access_token'].encode('utf-8'))
+            os.utime(self.ac_path, (timestamp, timestamp + data['expires_in'] - 600))
         return open(self.ac_path).read().strip()
 
     @property
@@ -155,8 +155,8 @@ class WechatMP(object):
             params.setdefault('type', 'jsapi')
             data = self.get('/ticket/getticket', params, True)
             with open(self.jt_path, 'wb') as fp:
-                fp.write(data.ticket.encode('utf-8'))
-            os.utime(self.jt_path, (timestamp, timestamp + data.expires_in - 600))
+                fp.write(data['ticket'].encode('utf-8'))
+            os.utime(self.jt_path, (timestamp, timestamp + data['expires_in'] - 600))
         return open(self.jt_path).read()
 
     @property
@@ -176,7 +176,7 @@ class WechatMP(object):
         raw = [(k, kwargs[k]) for k in sorted(kwargs.keys())]
         s = '&'.join('='.join(kv) for kv in raw if kv[1])
         sign = hashlib.sha1(s.encode('utf-8')).hexdigest().lower()
-        return Map(sign=sign, timestamp=timestamp, noncestr=nonce_str, appId=self.app_id)
+        return dict(sign=sign, timestamp=timestamp, noncestr=nonce_str, appId=self.app_id)
 
     def groups_create(self, name):
         """

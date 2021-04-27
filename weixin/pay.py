@@ -9,7 +9,7 @@ import random
 import hashlib
 import requests
 
-from .base import Map, WechatError
+from .base import WechatError
 
 try:
     from flask import request
@@ -94,11 +94,11 @@ class WechatPay(object):
             resp = self.sess.post(url, data=self.to_xml(data))
         content = resp.content.decode('utf-8')
         if 'return_code' in content:
-            data = Map(self.to_dict(content))
-            if data.return_code == FAIL:
-                raise WechatPayError(data.return_msg)
-            if 'result_code' in content and data.result_code == FAIL:
-                raise WechatPayError(data.err_code_des)
+            data = self.to_dict(content)
+            if data['return_code'] == FAIL:
+                raise WechatPayError(data['return_msg'])
+            if 'result_code' in content and data['result_code'] == FAIL:
+                raise WechatPayError(data['err_code_des'])
             return data
         return content
 
@@ -294,10 +294,10 @@ class WechatPay(object):
             resp = self.sess.post(url, data=self.to_xml(data))
         content = resp.content.decode('utf-8')
         if 'return_code' in content:
-            data = Map(self.to_dict(content))
-            if data.return_code == FAIL:
-                raise WechatPayError(data.return_msg)
-            if 'result_code' in content and data.result_code == FAIL:
-                raise WechatPayError(data.err_code_des)
+            data = self.to_dict(content)
+            if data['return_code'] == FAIL:
+                raise WechatPayError(data['return_msg'])
+            if 'result_code' in content and data['result_code'] == FAIL:
+                raise WechatPayError(data['err_code_des'])
             return data
         return content

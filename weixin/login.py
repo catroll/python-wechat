@@ -6,7 +6,7 @@ from __future__ import unicode_literals
 import json
 import requests
 
-from .base import Map, WechatError
+from .base import WechatError
 
 
 __all__ = ('WechatLoginError', 'WechatLogin')
@@ -27,8 +27,8 @@ class WechatLogin(object):
 
     def _get(self, url, params):
         resp = self.sess.get(url, params=params)
-        data = Map(json.loads(resp.content.decode('utf-8')))
-        if data.errcode:
+        data = json.loads(resp.content.decode('utf-8'))
+        if data['errcode']:
             msg = '%(errcode)d %(errmsg)s' % data
             raise WechatLoginError(msg)
         return data
