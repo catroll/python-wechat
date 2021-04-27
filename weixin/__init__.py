@@ -1,16 +1,16 @@
 # -*- coding: utf-8 -*-
 
 
-from .msg import WeixinMsg
-from .pay import WeixinPay
-from .login import WeixinLogin
-from .mp import WeixinMP
-from .base import WeixinError, Map
+from .msg import WechatMsg
+from .pay import WechatPay
+from .login import WechatLogin
+from .mp import WechatMP
+from .base import WechatError, Map
 
 from collections import namedtuple
 
 
-__all__ = ("Weixin")
+__all__ = ("Wechat")
 __author__ = "Weicheng Zou <zwczou@gmail.com>"
 __version__ = "0.5.7"
 
@@ -18,7 +18,7 @@ __version__ = "0.5.7"
 StandaloneApplication = namedtuple("StandaloneApplication", ["config"])
 
 
-class Weixin(WeixinLogin, WeixinPay, WeixinMP, WeixinMsg):
+class Wechat(WechatLogin, WechatPay, WechatMP, WechatMsg):
     """
     微信SDK
 
@@ -46,18 +46,18 @@ class Weixin(WeixinLogin, WeixinPay, WeixinMP, WeixinMsg):
         app_id = app.config.get("WEIXIN_APP_ID")
         app_secret = app.config.get("WEIXIN_APP_SECRET")
         if token:
-            WeixinMsg.__init__(self, token, sender, expires_in)
+            WechatMsg.__init__(self, token, sender, expires_in)
         if app_id and mch_id and mch_key and notify_url:
-            WeixinPay.__init__(self, app_id, mch_id, mch_key, notify_url, mch_key_file, mch_cert_file)
+            WechatPay.__init__(self, app_id, mch_id, mch_key, notify_url, mch_key_file, mch_cert_file)
         if app_id and app_secret:
-            WeixinLogin.__init__(self, app_id, app_secret)
-            WeixinMP.__init__(self, app_id, app_secret)
+            WechatLogin.__init__(self, app_id, app_secret)
+            WechatMP.__init__(self, app_id, app_secret)
 
         # 兼容老版本
         if app_id and mch_id and mch_key and notify_url:
-            self.pay = WeixinPay(app_id, mch_id, mch_key, notify_url, mch_key_file, mch_cert_file)
+            self.pay = WechatPay(app_id, mch_id, mch_key, notify_url, mch_key_file, mch_cert_file)
         if token:
-            self.msg = WeixinMsg(token, sender, expires_in)
+            self.msg = WechatMsg(token, sender, expires_in)
         if app_id and app_secret:
-            self.login = WeixinLogin(app_id, app_secret)
-            self.mp = WeixinMP(app_id, app_secret)
+            self.login = WechatLogin(app_id, app_secret)
+            self.mp = WechatMP(app_id, app_secret)

@@ -9,7 +9,7 @@ import random
 import hashlib
 import requests
 
-from .base import Map, WeixinError
+from .base import Map, WechatError
 
 try:
     from flask import request
@@ -19,20 +19,20 @@ except Exception:
 from lxml import etree
 
 
-__all__ = ("WeixinPayError", "WeixinPay")
+__all__ = ("WechatPayError", "WechatPay")
 
 
 FAIL = "FAIL"
 SUCCESS = "SUCCESS"
 
 
-class WeixinPayError(WeixinError):
+class WechatPayError(WechatError):
 
     def __init__(self, msg):
-        super(WeixinPayError, self).__init__(msg)
+        super(WechatPayError, self).__init__(msg)
 
 
-class WeixinPay(object):
+class WechatPay(object):
     PAY_HOST = "https://api.mch.weixin.qq.com"
 
     def __init__(self, app_id, mch_id, mch_key, notify_url, key=None, cert=None):
@@ -96,9 +96,9 @@ class WeixinPay(object):
         if "return_code" in content:
             data = Map(self.to_dict(content))
             if data.return_code == FAIL:
-                raise WeixinPayError(data.return_msg)
+                raise WechatPayError(data.return_msg)
             if "result_code" in content and data.result_code == FAIL:
-                raise WeixinPayError(data.err_code_des)
+                raise WechatPayError(data.err_code_des)
             return data
         return content
 
@@ -117,19 +117,19 @@ class WeixinPay(object):
 
         # 必填参数
         if "out_trade_no" not in data:
-            raise WeixinPayError("缺少统一支付接口必填参数out_trade_no")
+            raise WechatPayError("缺少统一支付接口必填参数out_trade_no")
         if "body" not in data:
-            raise WeixinPayError("缺少统一支付接口必填参数body")
+            raise WechatPayError("缺少统一支付接口必填参数body")
         if "total_fee" not in data:
-            raise WeixinPayError("缺少统一支付接口必填参数total_fee")
+            raise WechatPayError("缺少统一支付接口必填参数total_fee")
         if "trade_type" not in data:
-            raise WeixinPayError("缺少统一支付接口必填参数trade_type")
+            raise WechatPayError("缺少统一支付接口必填参数trade_type")
 
         # 关联参数
         if data["trade_type"] == "JSAPI" and "openid" not in data:
-            raise WeixinPayError("trade_type为JSAPI时，openid为必填参数")
+            raise WechatPayError("trade_type为JSAPI时，openid为必填参数")
         if data["trade_type"] == "NATIVE" and "product_id" not in data:
-            raise WeixinPayError("trade_type为NATIVE时，product_id为必填参数")
+            raise WechatPayError("trade_type为NATIVE时，product_id为必填参数")
         data.setdefault("notify_url", self.notify_url)
         if "spbill_create_ip" not in data:
             data.setdefault("spbill_create_ip", self.remote_addr)
@@ -162,7 +162,7 @@ class WeixinPay(object):
         url = self.PAY_HOST + "/pay/orderquery"
 
         if "out_trade_no" not in data and "transaction_id" not in data:
-            raise WeixinPayError("订单查询接口中，out_trade_no、transaction_id至少填一个")
+            raise WechatPayError("订单查询接口中，out_trade_no、transaction_id至少填一个")
 
         return self._fetch(url, data)
 
@@ -187,15 +187,15 @@ class WeixinPay(object):
         """
         url = self.PAY_HOST + "/secapi/pay/refund"
         if not self.key or not self.cert:
-            raise WeixinError("退款申请接口需要双向证书")
+            raise WechatError("退款申请接口需要双向证书")
         if "out_trade_no" not in data and "transaction_id" not in data:
-            raise WeixinPayError("退款申请接口中，out_trade_no、transaction_id至少填一个")
+            raise WechatPayError("退款申请接口中，out_trade_no、transaction_id至少填一个")
         if "out_refund_no" not in data:
-            raise WeixinPayError("退款申请接口中，缺少必填参数out_refund_no");
+            raise WechatPayError("退款申请接口中，缺少必填参数out_refund_no");
         if "total_fee" not in data:
-            raise WeixinPayError("退款申请接口中，缺少必填参数total_fee");
+            raise WechatPayError("退款申请接口中，缺少必填参数total_fee");
         if "refund_fee" not in data:
-            raise WeixinPayError("退款申请接口中，缺少必填参数refund_fee");
+            raise WechatPayError("退款申请接口中，缺少必填参数refund_fee");
 
         return self._fetch(url, data, True)
 
@@ -211,7 +211,7 @@ class WeixinPay(object):
         url = self.PAY_HOST + "/pay/refundquery"
         if "out_refund_no" not in data and "out_trade_no" not in data \
                 and "transaction_id" not in data and "refund_id" not in data:
-            raise WeixinPayError("退款查询接口中，out_refund_no、out_trade_no、transaction_id、refund_id四个参数必填一个")
+            raise WechatPayError("退款查询接口中，out_refund_no、out_trade_no、transaction_id、refund_id四个参数必填一个")
 
         return self._fetch(url, data)
 
@@ -226,7 +226,7 @@ class WeixinPay(object):
         data.setdefault("bill_type", bill_type)
 
         if "bill_date" not in data:
-            raise WeixinPayError("对账单接口中，缺少必填参数bill_date")
+            raise WechatPayError("对账单接口中，缺少必填参数bill_date")
 
         return self._fetch(url, data)
 
@@ -236,15 +236,15 @@ class WeixinPay(object):
         """
         url = "https://api.mch.weixin.qq.com/mmpaymkttransfers/promotion/transfers"
         if not self.key or not self.cert:
-            raise WeixinPayError("企业接口需要双向证书")
+            raise WechatPayError("企业接口需要双向证书")
         if "partner_trade_no" not in data:
-            raise WeixinPayError("企业付款接口中, 缺少必要的参数partner_trade_no")
+            raise WechatPayError("企业付款接口中, 缺少必要的参数partner_trade_no")
         if "openid" not in data:
-            raise WeixinPayError("企业付款接口中，缺少必填参数openid")
+            raise WechatPayError("企业付款接口中，缺少必填参数openid")
         if "amount" not in data:
-            raise WeixinPayError("企业付款接口中，缺少必填参数amount")
+            raise WechatPayError("企业付款接口中，缺少必填参数amount")
         if "desc" not in data:
-            raise WeixinPayError("企业付款接口中，缺少必填参数desc")
+            raise WechatPayError("企业付款接口中，缺少必填参数desc")
         data.setdefault('check_name', 'NO_CHECK')
         return self._fetch_pay(url, data, True)
 
@@ -252,35 +252,35 @@ class WeixinPay(object):
         """企业付款到银行卡"""
         url = 'https://api.mch.weixin.qq.com/mmpaysptrans/pay_bank'
         if not self.key or not self.cert:
-            raise WeixinPayError("企业接口需要双向证书")
+            raise WechatPayError("企业接口需要双向证书")
         if "partner_trade_no" not in data:
-            raise WeixinPayError("企业付款接口中, 缺少必要的参数partner_trade_no")
+            raise WechatPayError("企业付款接口中, 缺少必要的参数partner_trade_no")
         if "enc_bank_no" not in data:
-            raise WeixinPayError("企业付款接口中，缺少必填参数enc_bank_no")
+            raise WechatPayError("企业付款接口中，缺少必填参数enc_bank_no")
         if "enc_true_name" not in data:
-            raise WeixinPayError("企业付款接口中，缺少必填参数enc_true_name")
+            raise WechatPayError("企业付款接口中，缺少必填参数enc_true_name")
         if "bank_code" not in data:
-            raise WeixinPayError("企业付款接口中，缺少必填参数bank_code")
+            raise WechatPayError("企业付款接口中，缺少必填参数bank_code")
         if "amount" not in data:
-            raise WeixinPayError("企业付款接口中，缺少必填参数amount")
+            raise WechatPayError("企业付款接口中，缺少必填参数amount")
         return self._fetch(url, data, True, False)
 
     def pay_individual_bank_query(self, **data):
         """企业付款到银行卡查询"""
         url = "https://api.mch.weixin.qq.com/mmpaysptrans/query_bank"
         if not self.key or not self.cert:
-            raise WeixinPayError("企业接口需要双向证书'")
+            raise WechatPayError("企业接口需要双向证书'")
         if "partner_trade_no" not in data:
-            raise WeixinPayError("企业付款接口中, 缺少必要的参数partner_trade_no")
+            raise WechatPayError("企业付款接口中, 缺少必要的参数partner_trade_no")
         return self._fetch(url, data, True, False)
 
     def pay_individual_query(self, **data):
         """企业付款到零钱查询"""
         url = "https://api.mch.weixin.qq.com/mmpaymkttransfers/gettransferinfo"
         if not self.key or not self.cert:
-            raise WeixinPayError("企业接口需要双向证书'")
+            raise WechatPayError("企业接口需要双向证书'")
         if "partner_trade_no" not in data:
-            raise WeixinPayError("企业付款接口中, 缺少必要的参数partner_trade_no")
+            raise WechatPayError("企业付款接口中, 缺少必要的参数partner_trade_no")
         return self._fetch(url, data, True)
 
     def _fetch_pay(self, url, data, use_cert=False):
@@ -296,8 +296,8 @@ class WeixinPay(object):
         if "return_code" in content:
             data = Map(self.to_dict(content))
             if data.return_code == FAIL:
-                raise WeixinPayError(data.return_msg)
+                raise WechatPayError(data.return_msg)
             if "result_code" in content and data.result_code == FAIL:
-                raise WeixinPayError(data.err_code_des)
+                raise WechatPayError(data.err_code_des)
             return data
         return content

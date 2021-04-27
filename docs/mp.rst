@@ -9,9 +9,9 @@
 
 ::
 
-    from weixin.mp import WeixinMP
+    from weixin.mp import WechatMP
 
-    mp = WeixinMP(app_id, app_secret)
+    mp = WechatMP(app_id, app_secret)
 
 获取公众号唯一凭证
 ~~~~~~~~~~~~~~~~~~
@@ -67,7 +67,7 @@ jsapi签名，比如扫码或者分享
     # 获取菜单
     try:
         print mp.menu_get()
-    except WeixinError:
+    except WechatError:
         pass
 
     # 创建菜单

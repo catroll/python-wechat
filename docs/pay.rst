@@ -12,11 +12,11 @@
 
 ::
 
-    from weixin.pay import WeixinPay, WeixinPayError
+    from weixin.pay import WechatPay, WechatPayError
     # 或者
-    # from weixin import WeixinPay, WeixinError
+    # from weixin import WechatPay, WechatError
 
-    pay = WeixinPay('app_id', 'mch_id', 'mch_key', 'notify_url', '/path/to/key.pem', '/path/to/cert.pem') # 后两个参数可选
+    pay = WechatPay('app_id', 'mch_id', 'mch_key', 'notify_url', '/path/to/key.pem', '/path/to/cert.pem') # 后两个参数可选
 
 统一下单
 ~~~~~~~~
@@ -44,7 +44,7 @@
         out_trade_no = wx_pay.nonce_str
         raw = pay.unified_order(trade_type="JSAPI", openid="openid", body=u"测试", out_trade_no=out_trade_no, total_fee=1, attach="other info")
         print raw
-    except WeixinError, e:
+    except WechatError, e:
         print e.message
 
 网页端调起支付API
@@ -72,7 +72,7 @@
         out_trade_no = wx_pay.nonce_str
         raw = pay.jsapi(openid="openid", body=u"测试", out_trade_no=out_trade_no, total_fee=1, attach="other info")
         print raw
-    except WeixinError, e:
+    except WechatError, e:
         print e
 
 查询订单
@@ -216,11 +216,11 @@ out_refund_no 商户退款单号 \* refund_id 微信退款单号
 
     # -*- coding: utf-8 -*-
 
-    # from weixin import WeixinPay, WeixinError
-    from weixin.pay import WeixinPay, WeixinPayError
+    # from weixin import WechatPay, WechatError
+    from weixin.pay import WechatPay, WechatPayError
 
 
-    wx_pay = WeixinPay(app_id, mch_id, mch_key, notify_url)
+    wx_pay = WechatPay(app_id, mch_id, mch_key, notify_url)
 
 
     @app.route("/pay/create")
@@ -232,8 +232,8 @@ out_refund_no 商户退款单号 \* refund_id 微信退款单号
             out_trade_no = wx_pay.nonce_str
             raw = wx_pay.jsapi(openid="openid", body=u"测试", out_trade_no=out_trade_no, total_fee=1)
             return jsonify(raw)
-        except WeixinPayError, e:
-        # except WeixinError, e
+        except WechatPayError, e:
+        # except WechatError, e
             print e.message
             return e.message, 400
 

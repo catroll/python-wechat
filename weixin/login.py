@@ -6,19 +6,19 @@ from __future__ import unicode_literals
 import json
 import requests
 
-from .base import Map, WeixinError
+from .base import Map, WechatError
 
 
-__all__ = ("WeixinLoginError", "WeixinLogin")
+__all__ = ("WechatLoginError", "WechatLogin")
 
 
-class WeixinLoginError(WeixinError):
+class WechatLoginError(WechatError):
 
     def __init__(self, msg):
-        super(WeixinLoginError, self).__init__(msg)
+        super(WechatLoginError, self).__init__(msg)
 
 
-class WeixinLogin(object):
+class WechatLogin(object):
 
     def __init__(self, app_id, app_secret):
         self.sess = requests.Session()
@@ -30,7 +30,7 @@ class WeixinLogin(object):
         data = Map(json.loads(resp.content.decode("utf-8")))
         if data.errcode:
             msg = "%(errcode)d %(errmsg)s" % data
-            raise WeixinLoginError(msg)
+            raise WechatLoginError(msg)
         return data
 
     def authorize(self, redirect_uri, scope="snsapi_base", state=None):
@@ -114,7 +114,7 @@ class WeixinLogin(object):
         """
         获取用户信息
 
-        兼容老版本0.3.0,与WeixinMP的user_info冲突
+        兼容老版本0.3.0,与WechatMP的user_info冲突
         """
         return self.userinfo(access_token, openid)
 

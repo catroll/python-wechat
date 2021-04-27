@@ -52,8 +52,8 @@
 
 ## 异常
 
-父异常类名为 `WeixinError`
-子异常类名分别为 `WeixinLoginError` `WeixinPayError` `WeixinMPError` `WeixinMsgError`
+父异常类名为 `WechatError`
+子异常类名分别为 `WechatLoginError` `WechatPayError` `WechatMPError` `WechatMsgError`
 
 ## 用法
 
@@ -103,7 +103,7 @@
 
 from datetime import datetime, timedelta
 from flask import Flask, jsonify, request, url_for
-from weixin import Weixin, WeixinError
+from weixin import Wechat, WechatError
 
 
 app = Flask(__name__)
@@ -116,10 +116,10 @@ app.config.from_object(dict(WEIXIN_APP_ID='', WEIXIN_APP_SECRET=''))
 
 
 # 初始化微信
-weixin = Weixin()
+weixin = Wechat()
 weixin.init_app(app)
 # 或者
-# weixin = Weixin(app)
+# weixin = Wechat(app)
 
 ```
 
@@ -128,7 +128,7 @@ weixin.init_app(app)
 ```
 # 根据需求导入仅供参考
 config = dict(WEIXIN_APP_ID='', WEIXIN_APP_SECRET='')
-weixin = Weixin(config)
+weixin = Wechat(config)
 ```
 
 ### 微信消息
@@ -226,7 +226,7 @@ def pay_jsapi():
         out_trade_no = weixin.nonce_str
         raw = weixin.jsapi(openid="openid", body=u"测试", out_trade_no=out_trade_no, total_fee=1)
         return jsonify(raw)
-    except WeixinError, e:
+    except WechatError, e:
         print e.message
         return e.message, 400
 

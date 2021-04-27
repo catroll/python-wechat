@@ -24,7 +24,7 @@ def fread(fname):
 
 setup(
     name='weixin-python',
-    description='Weixin for Python',
+    description='Wechat for Python',
     long_description=fread('docs/quickstart.rst'),
     license='BSD',
     packages=find_packages(),

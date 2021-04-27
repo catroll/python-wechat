@@ -11,45 +11,45 @@ import string
 import random
 import requests
 
-from .base import Map, WeixinError
+from .base import Map, WechatError
 
 
-__all__ = ("WeixinMPError", "WeixinMP")
+__all__ = ("WechatMPError", "WechatMP")
 
 
 DEFAULT_DIR = os.getenv("HOME", os.getcwd())
 
 
-class WeixinMPError(WeixinError):
+class WechatMPError(WechatError):
 
     def __init__(self, msg):
-        super(WeixinMPError, self).__init__(msg)
+        super(WechatMPError, self).__init__(msg)
 
 
-class WeixinMP(object):
+class WechatMP(object):
     """
     微信公众号相关接口
 
-    当需要全局使用access token可以选择继承WeixinMP实现access_token
+    当需要全局使用access token可以选择继承WechatMP实现access_token
 
-        class WeixinMPSub(object):
+        class WechatMPSub(object):
 
             def __init__(self, app_id, app_secret):
-                WeixinMP.__init__(app_id, app_secret)
+                WechatMP.__init__(app_id, app_secret)
 
             @property
             def access_token(self):
                 return requests.get("http://example.com").content
 
 
-        mp = WeixinMPSub("app_id", "app_secret")
+        mp = WechatMPSub("app_id", "app_secret")
 
     也可以选择传入jt_callback
 
         def get_access_token(mp):
             return requests.get("http://example.com").content
 
-        WeixinMP("app_id", "app_secret", ac_callback=get_access_token)
+        WechatMP("app_id", "app_secret", ac_callback=get_access_token)
     """
 
     api_uri = "https://api.weixin.qq.com"
@@ -83,7 +83,7 @@ class WeixinMP(object):
         data = Map(resp.json())
         if data.errcode:
             msg = "%(errcode)d %(errmsg)s" % data
-            raise WeixinMPError(msg)
+            raise WechatMPError(msg)
         return data
 
     def get(self, path, params=None, token=True, prefix="/cgi-bin"):
@@ -118,7 +118,7 @@ class WeixinMP(object):
 
         当多台服务器需要共用access_token的时候
         如果不想自己继承实现access_token，可以传入ac_callback()
-        接收一个WeixinMP对象作为参数
+        接收一个WechatMP对象作为参数
         """
         if self.ac_callback and callable(self.ac_callback):
             return self.ac_callback(self)
@@ -143,7 +143,7 @@ class WeixinMP(object):
 
         当多台服务器需要共用js_ticket的时候
         如果不想自己继承实现js_ticket，可以传入jt_callback()
-        接收一个WeixinMP对象作为参数
+        接收一个WechatMP对象作为参数
         """
         if self.jt_callback and callable(self.jt_callback):
             return self.jt_callback(self)

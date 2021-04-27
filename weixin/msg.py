@@ -8,7 +8,7 @@ import hashlib
 
 from datetime import datetime
 
-from .base import WeixinError
+from .base import WechatError
 
 try:
     from flask import request, Response
@@ -23,16 +23,16 @@ except Exception:
 from lxml import etree
 
 
-__all__ = ("WeixinMsgError", "WeixinMsg")
+__all__ = ("WechatMsgError", "WechatMsg")
 
 
-class WeixinMsgError(WeixinError):
+class WechatMsgError(WechatError):
 
     def __init__(self, msg):
-        super(WeixinMsgError, self).__init__(msg)
+        super(WechatMsgError, self).__init__(msg)
 
 
-class WeixinMsg(object):
+class WechatMsg(object):
 
     def __init__(self, token, sender=None, expires_in=0):
         self.token = token
@@ -42,7 +42,7 @@ class WeixinMsg(object):
 
     def validate(self, signature, timestamp, nonce):
         if not self.token:
-            raise WeixinMsgError("weixin token is missing")
+            raise WechatMsgError("weixin token is missing")
 
         if self.expires_in:
             try:

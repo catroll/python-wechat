@@ -19,10 +19,10 @@
 
 ::
 
-    from weixin import WeixinLogin
-    # from weixin.login import WeixinLogin
+    from weixin import WechatLogin
+    # from weixin.login import WechatLogin
 
-    login = WeixinLogin('app_id', 'app_key')
+    login = WechatLogin('app_id', 'app_key')
 
 引导用户跳转到授权页面
 ~~~~~~~~~~~~~~~~~~~~~~
@@ -76,14 +76,14 @@
 
     from datetime import datetime, timedelta
     from flask import Flask, redirect, request, url_for
-    from weixin.login import WeixinLogin
+    from weixin.login import WechatLogin
 
 
     app = Flask(__name__)
 
     app_id = ''
     app_secret = ''
-    wx_login = WeixinLogin(app_id, app_secret)
+    wx_login = WechatLogin(app_id, app_secret)
 
 
     @app.route("/login")

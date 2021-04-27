@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 
 
-__all__ = ("Map", "WeixinError")
+__all__ = ("Map", "WechatError")
 
 
 try:
@@ -14,10 +14,10 @@ else:
     bytes = str
 
 
-class WeixinError(Exception):
+class WechatError(Exception):
 
     def __init__(self, msg):
-        super(WeixinError, self).__init__(msg)
+        super(WechatError, self).__init__(msg)
 
 
 class Map(dict):

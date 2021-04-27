@@ -23,10 +23,10 @@
 
 ::
 
-    from weixin import WeixinMsg
-    # from weixin.msg import WeixinMsg
+    from weixin import WechatMsg
+    # from weixin.msg import WechatMsg
 
-    msg = WeixinMsg('token')
+    msg = WechatMsg('token')
 
     # 如果使用flask
     app.add_url_rule("/", view_func=msg.view_func)
@@ -179,11 +179,11 @@
 
 
     from flask import Flask
-    from weixin.msg import WeixinMsg
+    from weixin.msg import WechatMsg
 
 
     app = Flask(__name__)
-    msg = WeixinMsg("e10adc3949ba59abbe56e057f20f883e", None, 0)
+    msg = WechatMsg("e10adc3949ba59abbe56e057f20f883e", None, 0)
 
 
     app.add_url_rule("/", view_func=msg.view_func)

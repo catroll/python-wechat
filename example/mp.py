@@ -1,17 +1,17 @@
 # -*- coding: utf-8 -*-
 
 
-from weixin import WeixinMP, WeixinError
+from weixin import WechatMP, WechatError
 
 
 app_id = ''
 app_secret = ''
-mp = WeixinMP(app_id, app_secret)
+mp = WechatMP(app_id, app_secret)
 
 # 获取菜单
 try:
     print mp.menu_get()
-except WeixinError:
+except WechatError:
     pass
 
 # 创建菜单
