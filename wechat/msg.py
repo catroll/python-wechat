@@ -1,7 +1,7 @@
 import time
 from datetime import datetime
 
-from .base import WechatError, sha1, xml2dict
+from .base import WechatBase, WechatError, sha1, xml2dict
 
 __all__ = 'WechatMsgError', 'WechatMsg'
 
@@ -10,7 +10,7 @@ class WechatMsgError(WechatError):
     pass
 
 
-class WechatMsg(object):
+class WechatMsg(WechatBase):
     def __init__(self, token, sender=None, expires_in=0):
         self.token = token
         self.sender = sender

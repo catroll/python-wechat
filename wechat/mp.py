@@ -4,7 +4,7 @@ import time
 
 import requests
 
-from .base import WechatError, sha1, random_string
+from .base import WechatBase, WechatError, random_string, sha1
 
 LOG = logging.getLogger(__name__)
 DEFAULT_DIR = '/tmp'
@@ -16,7 +16,7 @@ class WechatMPError(WechatError):
     pass
 
 
-class WechatMP(object):
+class WechatMP(WechatBase):
     """
     微信公众号相关接口
 

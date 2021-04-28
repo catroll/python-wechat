@@ -3,7 +3,8 @@ import time
 
 import requests
 
-from .base import WechatError, dict2xml, xml2dict, md5, hmac_sha256, random_string
+from .base import (WechatBase, WechatError, dict2xml, hmac_sha256, md5,
+                   random_string, xml2dict)
 
 LOG = logging.getLogger(__name__)
 
@@ -22,7 +23,7 @@ SIGN_METHODS = {
 }
 
 
-class WechatPay(object):
+class WechatPay(WechatBase):
     PAY_HOST = 'https://api.mch.weixin.qq.com'
 
     def __init__(self, app_id, mch_id, mch_key, notify_url, key=None, cert=None,

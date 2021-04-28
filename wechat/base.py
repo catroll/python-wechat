@@ -6,7 +6,8 @@ import urllib.parse
 import xml.etree.ElementTree as etree
 from xml.sax.saxutils import escape as xml_escape
 
-__all__ = 'random_string', 'md5', 'sha1', 'hmac_sha256', 'dict2xml', 'xml2dict', 'urlencode', 'WechatError'
+__all__ = 'random_string', 'md5', 'sha1', 'hmac_sha256', 'dict2xml', 'xml2dict', 'urlencode', \
+    'WechatError', 'WechatBase'
 
 
 def random_string(length=8):
@@ -50,3 +51,7 @@ def urlencode(url):
 class WechatError(Exception):
     def __init__(self, msg):
         super(WechatError, self).__init__(msg)
+
+
+class WechatBase:
+    pass

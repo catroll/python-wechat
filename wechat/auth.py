@@ -2,7 +2,7 @@ import logging
 
 import requests
 
-from .base import WechatError, urlencode
+from .base import WechatBase, WechatError, urlencode
 
 LOG = logging.getLogger(__name__)
 
@@ -13,7 +13,7 @@ class WechatAuthError(WechatError):
     pass
 
 
-class WechatAuth(object):
+class WechatAuth(WechatBase):
     """微信网页授权
 
     1、微信网页授权是通过 OAuth2.0 机制实现的，
