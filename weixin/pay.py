@@ -1,75 +1,72 @@
 import hashlib
+import hmac
+import logging
 import random
 import string
 import time
 
 import requests
 
-from .base import WechatError
+from .base import WechatError, dict2xml, xml2dict
 
-from lxml import etree
+LOG = logging.getLogger(__name__)
 
-__all__ = ('WechatPayError', 'WechatPay')
+__all__ = 'WechatPayError', 'WechatPay'
+
+
+class WechatPayError(WechatError):
+    def __init__(self, msg):
+        super(WechatPayError, self).__init__(msg)
 
 
 FAIL = 'FAIL'
 SUCCESS = 'SUCCESS'
-
-
-class WechatPayError(WechatError):
-
-    def __init__(self, msg):
-        super(WechatPayError, self).__init__(msg)
+SIGN_METHODS = {
+    'md5': 'MD5',
+    'hmac_sha256': 'HMAC-SHA256',
+}
 
 
 class WechatPay(object):
     PAY_HOST = 'https://api.mch.weixin.qq.com'
 
-    def __init__(self, app_id, mch_id, mch_key, notify_url, key=None, cert=None):
+    def __init__(self, app_id, mch_id, mch_key, notify_url, key=None, cert=None,
+                 sign_method='hmac_sha256'):
         self.app_id = app_id
         self.mch_id = mch_id
-        self.mch_key = mch_key
+        self.mch_key = mch_key  # 商户平台 --> 账户设置 --> API安全 --> 密钥设置
         self.notify_url = notify_url
         self.key = key
         self.cert = cert
+        self.sign_method = sign_method
         self.sess = requests.Session()
-
-    @property
-    def remote_addr(self):
-        if request is not None:
-            return request.remote_addr
-        return ''
 
     @property
     def nonce_str(self):
         char = string.ascii_letters + string.digits
         return ''.join(random.choice(char) for _ in range(32))
 
-    def sign(self, raw):
+    def sign(self, raw, sign_method=None):
+        sign_method = sign_method or self.sign_method
         raw = [(k, str(raw[k]) if isinstance(raw[k], int) else raw[k])
                for k in sorted(raw.keys())]
         s = '&'.join('='.join(kv) for kv in raw if kv[1])
-        s += '&key={0}'.format(self.mch_key)
-        return hashlib.md5(s.encode('utf-8')).hexdigest().upper()
+        s += '&key=%s' % self.mch_key
+        sign = getattr(self, '_sign_%s' % sign_method)(s)
+        LOG.debug('签名 %s : %s => %s', sign_method, s, sign)
+        return sign
+
+    def _sign_md5(self, content):
+        return hashlib.md5(content.encode('utf-8')).hexdigest().upper()
+
+    def _sign_hmac_sha256(self, content):
+        return hmac.new(self.mch_key.encode('utf-8'),
+                        msg=content.encode('utf-8'),
+                        digestmod=hashlib.sha256).hexdigest().upper()
 
     def check(self, data):
         sign = data.pop('sign')
         return sign == self.sign(data)
-
-    def to_xml(self, raw):
-        s = ''
-        for k, v in raw.items():
-            s += '<{0}>{1}</{0}>'.format(k, v)
-        s = '<xml>{0}</xml>'.format(s)
-        return s.encode('utf-8')
-
-    def to_dict(self, content):
-        raw = {}
-        root = etree.fromstring(content.encode('utf-8'),
-                                parser=etree.XMLParser(resolve_entities=False))
-        for child in root:
-            raw[child.tag] = child.text
-        return raw
 
     def _fetch(self, url, data, use_cert=False, appid=True):
         if appid:
@@ -79,22 +76,22 @@ class WechatPay(object):
         data.setdefault('sign', self.sign(data))
 
         if use_cert:
-            resp = self.sess.post(url, data=self.to_xml(data), cert=(self.cert, self.key))
+            resp = self.sess.post(url, data=dict2xml(data), cert=(self.cert, self.key))
         else:
-            resp = self.sess.post(url, data=self.to_xml(data))
+            resp = self.sess.post(url, data=dict2xml(data))
         content = resp.content.decode('utf-8')
         if 'return_code' in content:
-            data = self.to_dict(content)
+            data = xml2dict(content)
             if data['return_code'] == FAIL:
                 raise WechatPayError(data['return_msg'])
-            if 'result_code' in content and data['result_code'] == FAIL:
+            if 'result_code' in data and data['result_code'] == FAIL:
                 raise WechatPayError(data['err_code_des'])
             return data
         return content
 
     def reply(self, msg, ok=True):
         code = SUCCESS if ok else FAIL
-        return self.to_xml(dict(return_code=code, return_msg=msg))
+        return dict2xml(dict(return_code=code, return_msg=msg))
 
     def unified_order(self, **data):
         """
@@ -121,10 +118,8 @@ class WechatPay(object):
             raise WechatPayError('trade_type为JSAPI时，openid为必填参数')
         if data['trade_type'] == 'NATIVE' and 'product_id' not in data:
             raise WechatPayError('trade_type为NATIVE时，product_id为必填参数')
-        data.setdefault('notify_url', self.notify_url)
-        if 'spbill_create_ip' not in data:
-            data.setdefault('spbill_create_ip', self.remote_addr)
 
+        data.setdefault('notify_url', self.notify_url)
         raw = self._fetch(url, data)
         return raw
 
@@ -135,7 +130,7 @@ class WechatPay(object):
         """
         kwargs.setdefault('trade_type', 'JSAPI')
         raw = self.unified_order(**kwargs)
-        package = 'prepay_id={0}'.format(raw['prepay_id'])
+        package = 'prepay_id=%s' % raw['prepay_id']
         timestamp = str(int(time.time()))
         nonce_str = self.nonce_str
         raw = dict(appId=self.app_id, timeStamp=timestamp,
@@ -151,10 +146,8 @@ class WechatPay(object):
         appid, mchid, nonce_str不需要填入
         """
         url = self.PAY_HOST + '/pay/orderquery'
-
         if 'out_trade_no' not in data and 'transaction_id' not in data:
             raise WechatPayError('订单查询接口中，out_trade_no、transaction_id至少填一个')
-
         return self._fetch(url, data)
 
     def close_order(self, out_trade_no, **data):
@@ -164,9 +157,7 @@ class WechatPay(object):
         appid, mchid, nonce_str不需要填入
         """
         url = self.PAY_HOST + '/pay/closeorder'
-
         data.setdefault('out_trade_no', out_trade_no)
-
         return self._fetch(url, data)
 
     def refund(self, **data):
@@ -178,16 +169,15 @@ class WechatPay(object):
         """
         url = self.PAY_HOST + '/secapi/pay/refund'
         if not self.key or not self.cert:
-            raise WechatError('退款申请接口需要双向证书')
+            raise WechatPayError('退款申请接口需要双向证书')
         if 'out_trade_no' not in data and 'transaction_id' not in data:
             raise WechatPayError('退款申请接口中，out_trade_no、transaction_id至少填一个')
         if 'out_refund_no' not in data:
-            raise WechatPayError('退款申请接口中，缺少必填参数out_refund_no');
+            raise WechatPayError('退款申请接口中，缺少必填参数out_refund_no')
         if 'total_fee' not in data:
-            raise WechatPayError('退款申请接口中，缺少必填参数total_fee');
+            raise WechatPayError('退款申请接口中，缺少必填参数total_fee')
         if 'refund_fee' not in data:
-            raise WechatPayError('退款申请接口中，缺少必填参数refund_fee');
-
+            raise WechatPayError('退款申请接口中，缺少必填参数refund_fee')
         return self._fetch(url, data, True)
 
     def refund_query(self, **data):
@@ -195,7 +185,6 @@ class WechatPay(object):
         查询退款
         提交退款申请后，通过调用该接口查询退款状态。退款有一定延时，
         用零钱支付的退款20分钟内到账，银行卡支付的退款3个工作日后重新查询退款状态。
-
         out_refund_no、out_trade_no、transaction_id、refund_id四个参数必填一个
         appid、mchid、nonce_str不需要填入
         """
@@ -203,7 +192,6 @@ class WechatPay(object):
         if 'out_refund_no' not in data and 'out_trade_no' not in data \
                 and 'transaction_id' not in data and 'refund_id' not in data:
             raise WechatPayError('退款查询接口中，out_refund_no、out_trade_no、transaction_id、refund_id四个参数必填一个')
-
         return self._fetch(url, data)
 
     def download_bill(self, bill_date, bill_type='ALL', **data):
@@ -215,10 +203,8 @@ class WechatPay(object):
         url = self.PAY_HOST + '/pay/downloadbill'
         data.setdefault('bill_date', bill_date)
         data.setdefault('bill_type', bill_type)
-
         if 'bill_date' not in data:
             raise WechatPayError('对账单接口中，缺少必填参数bill_date')
-
         return self._fetch(url, data)
 
     def pay_individual(self, **data):
@@ -264,7 +250,7 @@ class WechatPay(object):
         """
         url = self.PAY_HOST + '/mmpaysptrans/query_bank'
         if not self.key or not self.cert:
-            raise WechatPayError('企业接口需要双向证书'')
+            raise WechatPayError('企业接口需要双向证书')
         if 'partner_trade_no' not in data:
             raise WechatPayError('企业付款接口中, 缺少必要的参数partner_trade_no')
         return self._fetch(url, data, True, False)
@@ -275,7 +261,7 @@ class WechatPay(object):
         """
         url = self.PAY_HOST + '/mmpaymkttransfers/gettransferinfo'
         if not self.key or not self.cert:
-            raise WechatPayError('企业接口需要双向证书'')
+            raise WechatPayError('企业接口需要双向证书')
         if 'partner_trade_no' not in data:
             raise WechatPayError('企业付款接口中, 缺少必要的参数partner_trade_no')
         return self._fetch(url, data, True)
@@ -286,12 +272,12 @@ class WechatPay(object):
         data.setdefault('nonce_str', self.nonce_str)
         data.setdefault('sign', self.sign(data))
         if use_cert:
-            resp = self.sess.post(url, data=self.to_xml(data), cert=(self.cert, self.key))
+            resp = self.sess.post(url, data=dict2xml(data), cert=(self.cert, self.key))
         else:
-            resp = self.sess.post(url, data=self.to_xml(data))
+            resp = self.sess.post(url, data=dict2xml(data))
         content = resp.content.decode('utf-8')
         if 'return_code' in content:
-            data = self.to_dict(content)
+            data = xml2dict(content)
             if data['return_code'] == FAIL:
                 raise WechatPayError(data['return_msg'])
             if 'result_code' in content and data['result_code'] == FAIL:

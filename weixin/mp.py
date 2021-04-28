@@ -1,5 +1,6 @@
 import hashlib
 import json
+import logging
 import os
 import random
 import string
@@ -9,14 +10,13 @@ import requests
 
 from .base import WechatError
 
-__all__ = ('WechatMPError', 'WechatMP')
+LOG = logging.getLogger(__name__)
+DEFAULT_DIR = '/tmp'
 
-
-DEFAULT_DIR = os.getenv('HOME', os.getcwd())
+__all__ = 'WechatMPError', 'WechatMP'
 
 
 class WechatMPError(WechatError):
-
     def __init__(self, msg):
         super(WechatMPError, self).__init__(msg)
 
@@ -51,12 +51,12 @@ class WechatMP(object):
 
     def __init__(self, app_id, app_secret, ac_path=None, jt_path=None, ac_callback=None, jt_callback=None):
         """
-        :param :app_id 微信app id
-        :param :app_secret 微信app secret
-        :param :ac_path access token 保存路径
-        :param :jt_path js ticket 保存路径
-        :param :ac_callback ac_callback
-        :param :jt_callback jt_callback
+        :param app_id: 微信 app id
+        :param app_secret: 微信 app secret
+        :param ac_path: access token 保存路径
+        :param jt_path: js ticket 保存路径
+        :param ac_callback: ac_callback
+        :param jt_callback: jt_callback
         """
         self.app_id = app_id
         self.app_secret = app_secret
@@ -76,8 +76,15 @@ class WechatMP(object):
         prepped = req.prepare()
         resp = self.session.send(prepped, timeout=20)
         data = resp.json()
-        if data['errcode']:
-            msg = '%(errcode)d %(errmsg)s' % data
+
+        LOG.debug('%s %s', method, url)
+        LOG.debug('Headers: %s', headers)
+        LOG.debug('Params: %s', params)
+        LOG.debug('Data: %s', data)
+        LOG.debug('Response: %s', data)
+
+        if data.get('errcode'):
+            msg = "%(errcode)d %(errmsg)s" % data
             raise WechatMPError(msg)
         return data
 
@@ -87,7 +94,8 @@ class WechatMP(object):
         else:
             url = '{0}{1}{2}'.format(self.api_uri, prefix, path)
         params = {} if not params else params
-        token and params.setdefault('access_token', self.access_token)
+        if token:
+            params.setdefault('access_token', self.access_token)
         return self.fetch('GET', url, params)
 
     def post(self, path, data, prefix='/cgi-bin', json_encode=True, token=True):
@@ -95,9 +103,9 @@ class WechatMP(object):
             url = path
         else:
             url = '{0}{1}{2}'.format(self.api_uri, prefix, path)
-        url = '{0}{1}{2}'.format(self.api_uri, prefix, path)
         params = {}
-        token and params.setdefault('access_token', self.access_token)
+        if token:
+            params.setdefault('access_token', self.access_token)
         headers = {}
         if json_encode:
             # data = json.dumps(data, ensure_ascii=False)
@@ -111,9 +119,9 @@ class WechatMP(object):
         """
         获取服务端凭证
 
-        当多台服务器需要共用access_token的时候
-        如果不想自己继承实现access_token，可以传入ac_callback()
-        接收一个WechatMP对象作为参数
+        当多台服务器需要共用 access_token 的时候
+        如果不想自己继承实现 access_token，可以传入 ac_callback
+        接收一个 WechatMP 对象作为参数
         """
         if self.ac_callback and callable(self.ac_callback):
             return self.ac_callback(self)
@@ -127,7 +135,7 @@ class WechatMP(object):
             params.setdefault('secret', self.app_secret)
             data = self.get('/token', params, False)
             with open(self.ac_path, 'wb') as fp:
-                fp.write(['access_token'].encode('utf-8'))
+                fp.write(data['access_token'].encode('utf-8'))
             os.utime(self.ac_path, (timestamp, timestamp + data['expires_in'] - 600))
         return open(self.ac_path).read().strip()
 
@@ -136,9 +144,9 @@ class WechatMP(object):
         """
         获取jsapi ticket
 
-        当多台服务器需要共用js_ticket的时候
-        如果不想自己继承实现js_ticket，可以传入jt_callback()
-        接收一个WechatMP对象作为参数
+        当多台服务器需要共用 js_ticket 的时候
+        如果不想自己继承实现 js_ticket，可以传入 jt_callback
+        接收一个 WechatMP 对象作为参数
         """
         if self.jt_callback and callable(self.jt_callback):
             return self.jt_callback(self)
@@ -168,6 +176,7 @@ class WechatMP(object):
         kwargs.setdefault('jsapi_ticket', self.jsapi_ticket)
         kwargs.setdefault('timestamp', timestamp)
         kwargs.setdefault('noncestr', nonce_str)
+        LOG.debug('sign params: %r', kwargs)
         raw = [(k, kwargs[k]) for k in sorted(kwargs.keys())]
         s = '&'.join('='.join(kv) for kv in raw if kv[1])
         sign = hashlib.sha1(s.encode('utf-8')).hexdigest().lower()

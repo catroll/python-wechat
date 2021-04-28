@@ -2,21 +2,17 @@ import hashlib
 import time
 from datetime import datetime
 
-from .base import WechatError
+from .base import WechatError, xml2dict
 
-from lxml import etree
-
-__all__ = ('WechatMsgError', 'WechatMsg')
+__all__ = 'WechatMsgError', 'WechatMsg'
 
 
 class WechatMsgError(WechatError):
-
     def __init__(self, msg):
         super(WechatMsgError, self).__init__(msg)
 
 
 class WechatMsg(object):
-
     def __init__(self, token, sender=None, expires_in=0):
         self.token = token
         self.sender = sender
@@ -35,26 +31,18 @@ class WechatMsg(object):
             delta = time.time() - timestamp
             if delta < 0 or delta > self.expires_in:
                 return False
+
         values = [self.token, str(timestamp), str(nonce)]
         s = ''.join(sorted(values))
         hsh = hashlib.sha1(s.encode('utf-8')).hexdigest()
         return signature == hsh
 
     def parse(self, content):
-        raw = {}
-        root = etree.fromstring(content,
-                                parser=etree.XMLParser(resolve_entities=False))
-        for child in root:
-            raw[child.tag] = child.text
-
+        raw = xml2dict(content)
         formatted = self.format(raw)
         msg_type = formatted['type']
         msg_parser = getattr(self, 'parse_{0}'.format(msg_type), None)
-        if callable(msg_parser):
-            parsed = msg_parser(raw)
-        else:
-            parsed = self.parse_invalid_type(raw)
-
+        parsed = msg_parser(raw) if callable(msg_parser) else self.parse_invalid_type(raw)
         formatted.update(parsed)
         return formatted
 
@@ -135,9 +123,7 @@ class WechatMsg(object):
             return text_reply(username, sender, content)
 
         if type == 'music':
-            values = {}
-            for k in ('title', 'description', 'music_url', 'hq_music_url'):
-                values[k] = kwargs[k]
+            values = {k: kwargs[k] for k in ('title', 'description', 'music_url', 'hq_music_url')}
             return music_reply(username, sender, **values)
 
         if type == 'news':
@@ -146,8 +132,7 @@ class WechatMsg(object):
 
         if type == 'customer_service':
             service_account = kwargs['service_account']
-            return transfer_customer_service_reply(username, sender,
-                                                   service_account)
+            return transfer_customer_service_reply(username, sender, service_account)
 
         if type == 'image':
             media_id = kwargs.get('media_id')
@@ -158,9 +143,7 @@ class WechatMsg(object):
             return voice_reply(username, sender, media_id)
 
         if type == 'video':
-            values = {}
-            for k in ('media_id', 'title', 'description'):
-                values[k] = kwargs[k]
+            values = {k: kwargs[k] for k in ('media_id', 'title', 'description')}
             return video_reply(username, sender, **values)
 
     def register(self, type, key=None, func=None):
@@ -174,6 +157,7 @@ class WechatMsg(object):
         def wrapper(func):
             self.register(type, key, func)
             return func
+
         return wrapper
 
     @property
@@ -207,8 +191,7 @@ def text_reply(username, sender, content):
 
 def music_reply(username, sender, **kwargs):
     kwargs['shared'] = _shared_reply(username, sender, 'music')
-
-    template = (
+    return (
         '<xml>'
         '%(shared)s'
         '<Music>'
@@ -218,8 +201,7 @@ def music_reply(username, sender, **kwargs):
         '<HQMusicUrl><![CDATA[%(hq_music_url)s]]></HQMusicUrl>'
         '</Music>'
         '</xml>'
-    )
-    return template % kwargs
+    ) % kwargs
 
 
 def news_reply(username, sender, *items):
@@ -232,39 +214,28 @@ def news_reply(username, sender, *items):
         '</item>'
     )
     articles = [item_template % o for o in items]
-
-    template = (
+    return (
         '<xml>'
         '%(shared)s'
         '<ArticleCount>%(count)d</ArticleCount>'
         '<Articles>%(articles)s</Articles>'
         '</xml>'
-    )
-    dct = {
+    ) % {
         'shared': _shared_reply(username, sender, 'news'),
         'count': len(items),
         'articles': ''.join(articles)
     }
-    return template % dct
 
 
 def transfer_customer_service_reply(username, sender, service_account):
-    template = (
-        '<xml>%(shared)s'
-        '%(transfer_info)s</xml>')
-    transfer_info = ''
-    if service_account:
-        transfer_info = (
-            '<TransInfo>'
-            '<KfAccount>![CDATA[%s]]</KfAccount>'
-            '</TransInfo>') % service_account
-
-    dct = {
-        'shared': _shared_reply(username, sender,
-                                type='transfer_customer_service'),
-        'transfer_info': transfer_info
+    template = '<xml>%(shared)s%(transfer_info)s</xml>'
+    transfer_info = ('<TransInfo>'
+                     '<KfAccount>![CDATA[%s]]</KfAccount>'
+                     '</TransInfo>') % service_account if service_account else ''
+    return template % {
+        'shared': _shared_reply(username, sender, type='transfer_customer_service'),
+        'transfer_info': transfer_info,
     }
-    return template % dct
 
 
 def image_reply(username, sender, media_id):
@@ -281,8 +252,7 @@ def voice_reply(username, sender, media_id):
 
 def video_reply(username, sender, **kwargs):
     kwargs['shared'] = _shared_reply(username, sender, 'video')
-
-    template = (
+    return (
         '<xml>'
         '%(shared)s'
         '<Video>'
@@ -291,21 +261,18 @@ def video_reply(username, sender, **kwargs):
         '<Description><![CDATA[%(description)s]]></Description>'
         '</Video>'
         '</xml>'
-    )
-    return template % kwargs
+    ) % kwargs
 
 
 def _shared_reply(username, sender, type):
-    dct = {
+    return (
+        '<ToUserName><![CDATA[%(username)s]]></ToUserName>'
+        '<FromUserName><![CDATA[%(sender)s]]></FromUserName>'
+        '<CreateTime>%(timestamp)d</CreateTime>'
+        '<MsgType><![CDATA[%(type)s]]></MsgType>'
+    ) % {
         'username': username,
         'sender': sender,
         'type': type,
         'timestamp': int(time.time()),
     }
-    template = (
-        '<ToUserName><![CDATA[%(username)s]]></ToUserName>'
-        '<FromUserName><![CDATA[%(sender)s]]></FromUserName>'
-        '<CreateTime>%(timestamp)d</CreateTime>'
-        '<MsgType><![CDATA[%(type)s]]></MsgType>'
-    )
-    return template % dct
