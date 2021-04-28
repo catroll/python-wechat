@@ -13,7 +13,7 @@ from .base import WeixinError
 from lxml import etree
 
 
-__all__ = ("WeixinMsgError", "WeixinMsg")
+__all__ = ('WeixinMsgError', 'WeixinMsg')
 
 
 class WeixinMsgError(WeixinError):
@@ -32,7 +32,7 @@ class WeixinMsg(object):
 
     def validate(self, signature, timestamp, nonce):
         if not self.token:
-            raise WeixinMsgError("weixin token is missing")
+            raise WeixinMsgError('weixin token is missing')
 
         if self.expires_in:
             try:
@@ -44,7 +44,7 @@ class WeixinMsg(object):
                 return False
         values = [self.token, str(timestamp), str(nonce)]
         s = ''.join(sorted(values))
-        hsh = hashlib.sha1(s.encode("utf-8")).hexdigest()
+        hsh = hashlib.sha1(s.encode('utf-8')).hexdigest()
         return signature == hsh
 
     def parse(self, content):
@@ -132,7 +132,7 @@ class WeixinMsg(object):
 
     def reply(self, username=None, type='text', sender=None, **kwargs):
         if not username:
-            raise RuntimeError("username is missing")
+            raise RuntimeError('username is missing')
         sender = sender or self.sender
         if not sender:
             raise RuntimeError('WEIXIN_SENDER or sender argument is missing')
@@ -203,7 +203,7 @@ class WeixinMsg(object):
                    'user_pay_from_pay_cell', 'user_view_card', 'user_enter_session_from_card', \
                    'card_sku_remind']:
             return self.register('event', key)
-        raise AttributeError('invalid attribute "' + key + '"')
+        raise AttributeError('invalid attribute "%s"' % key)
 
 
 def text_reply(username, sender, content):
