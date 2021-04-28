@@ -11,11 +11,6 @@ import requests
 
 from .base import Map, WeixinError
 
-try:
-    from flask import request
-except Exception:
-    request = None
-
 from lxml import etree
 
 
@@ -109,21 +104,22 @@ class WeixinPay(object):
     def unified_order(self, **data):
         """
         统一下单
-        out_trade_no、body、total_fee、trade_type必填
+        out_trade_no、body、total_fee、trade_type、spbill_create_ip必填
         app_id, mchid, nonce_str自动填写
-        spbill_create_ip 在flask框架下可以自动填写, 非flask框架需要主动传入此参数
         """
         url = self.PAY_HOST + '/pay/unifiedorder'
 
         # 必填参数
-        if "out_trade_no" not in data:
-            raise WeixinPayError("缺少统一支付接口必填参数out_trade_no")
-        if "body" not in data:
-            raise WeixinPayError("缺少统一支付接口必填参数body")
-        if "total_fee" not in data:
-            raise WeixinPayError("缺少统一支付接口必填参数total_fee")
-        if "trade_type" not in data:
-            raise WeixinPayError("缺少统一支付接口必填参数trade_type")
+        if 'out_trade_no' not in data:
+            raise WechatPayError('缺少统一支付接口必填参数out_trade_no')
+        if 'body' not in data:
+            raise WechatPayError('缺少统一支付接口必填参数body')
+        if 'total_fee' not in data:
+            raise WechatPayError('缺少统一支付接口必填参数total_fee')
+        if 'trade_type' not in data:
+            raise WechatPayError('缺少统一支付接口必填参数trade_type')
+        if 'spbill_create_ip' not in data:
+            raise WechatPayError('缺少统一支付接口必填参数spbill_create_ip')
 
         # 关联参数
         if data["trade_type"] == "JSAPI" and "openid" not in data:
