@@ -27,7 +27,7 @@ class WechatPay(WechatBase):
     PAY_HOST = 'https://api.mch.weixin.qq.com'
 
     def __init__(self, app_id, mch_id, mch_key, notify_url, key=None, cert=None,
-                 sign_method='hmac_sha256'):
+                 sign_method='hmac_sha256', debug=False):
         self.app_id = app_id
         self.mch_id = mch_id
         self.mch_key = mch_key  # 商户平台 --> 账户设置 --> API安全 --> 密钥设置
@@ -35,6 +35,7 @@ class WechatPay(WechatBase):
         self.key = key
         self.cert = cert
         self.sign_method = sign_method
+        self.debug = debug
         self.sess = requests.Session()
 
     @property

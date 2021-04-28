@@ -11,10 +11,11 @@ class WechatMsgError(WechatError):
 
 
 class WechatMsg(WechatBase):
-    def __init__(self, token, sender=None, expires_in=0):
+    def __init__(self, token, sender=None, expires_in=0, debug=False):
         self.token = token
         self.sender = sender
         self.expires_in = expires_in
+        self.debug = debug
         self._registry = dict()
 
     def validate(self, signature, timestamp, nonce):

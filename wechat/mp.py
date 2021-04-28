@@ -44,7 +44,7 @@ class WechatMP(WechatBase):
 
     api_uri = 'https://api.weixin.qq.com'
 
-    def __init__(self, app_id, app_secret, ac_path=None, jt_path=None, ac_callback=None, jt_callback=None):
+    def __init__(self, app_id, app_secret, ac_path=None, jt_path=None, ac_callback=None, jt_callback=None, debug=False):
         """
         :param app_id: 微信 app id
         :param app_secret: 微信 app secret
@@ -64,6 +64,7 @@ class WechatMP(WechatBase):
         self.jt_path = jt_path
         self.ac_callback = ac_callback
         self.jt_callback = jt_callback
+        self.debug = debug
 
     def fetch(self, method, url, params=None, data=None, json=None, headers=None):
         req = requests.Request(method, url, params=params, data=data, json=json, headers=headers)

@@ -30,11 +30,11 @@ class WechatAuth(WechatBase):
 
     AUTH_HOST = 'https://api.weixin.qq.com'
 
-    def __init__(self, app_id, app_secret, debug_mode=False):
+    def __init__(self, app_id, app_secret, debug=False):
         self.sess = requests.Session()
         self.app_id = app_id
         self.app_secret = app_secret
-        self.debug = debug_mode
+        self.debug = debug
 
     def _get(self, url, params):
         if self.debug:
