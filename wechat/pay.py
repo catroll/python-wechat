@@ -78,9 +78,9 @@ class WechatPay(WechatBase):
         if 'return_code' in content:
             data = xml2dict(content)
             if data['return_code'] == FAIL:
-                raise WechatPayError(data['return_msg'], resp=data)
+                raise WechatPayError(data['return_msg'], data)
             if 'result_code' in data and data['result_code'] == FAIL:
-                raise WechatPayError(data['err_code_des'], resp=data)
+                raise WechatPayError(data['err_code_des'], data)
             return data
         return content
 

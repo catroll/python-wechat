@@ -78,7 +78,7 @@ class WechatMP(WechatBase):
         LOG.debug('Response: %s', ret)
         if ret.get('errcode'):
             msg = '%(errcode)d %(errmsg)s' % ret
-            raise WechatMPError(msg, resp=ret)
+            raise WechatMPError(msg, ret)
         return ret
 
     def request(self, path, params=None, data=None, json=None, headers=None, token=True, prefix='/cgi-bin'):

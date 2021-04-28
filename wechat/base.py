@@ -49,8 +49,7 @@ def urlencode(url):
 
 
 class WechatError(Exception):
-    def __init__(self, msg):
-        super(WechatError, self).__init__(msg)
+    pass
 
 
 class WechatBase:
