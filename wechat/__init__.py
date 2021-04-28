@@ -47,9 +47,9 @@ class Wechat(WechatAuth, WechatPay, WechatMP, WechatMsg):
         app_secret = app.config.get('WEIXIN_APP_SECRET')
 
         if token:
-            WechatMsg.__init__(self, token, sender, expires_in)
+            self.msg = WechatMsg(token, sender, expires_in)
         if app_id and mch_id and mch_key and notify_url:
-            WechatPay.__init__(self, app_id, mch_id, mch_key, notify_url, mch_key_file, mch_cert_file)
+            self.pay = WechatPay(app_id, mch_id, mch_key, notify_url, mch_key_file, mch_cert_file)
         if app_id and app_secret:
-            WechatAuth.__init__(self, app_id, app_secret)
-            WechatMP.__init__(self, app_id, app_secret)
+            self.auth = WechatAuth(app_id, app_secret)
+            self.mp = WechatMP(self, app_id, app_secret)
