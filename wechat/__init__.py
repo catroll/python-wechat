@@ -35,16 +35,16 @@ class Wechat:
         if isinstance(app, dict):
             app = StandaloneApplication(config=app)
 
-        token = app.config.get('WEIXIN_TOKEN')
-        sender = app.config.get('WEIXIN_SENDER', None)
-        expires_in = app.config.get('WEIXIN_EXPIRES_IN', 0)
-        mch_id = app.config.get('WEIXIN_MCH_ID')
-        mch_key = app.config.get('WEIXIN_MCH_KEY')
-        notify_url = app.config.get('WEIXIN_NOTIFY_URL')
-        mch_key_file = app.config.get('WEIXIN_MCH_KEY_FILE')
-        mch_cert_file = app.config.get('WEIXIN_MCH_CERT_FILE')
-        app_id = app.config.get('WEIXIN_APP_ID')
-        app_secret = app.config.get('WEIXIN_APP_SECRET')
+        token = app.config.get('WXN_TOKEN')
+        sender = app.config.get('WXN_SENDER', None)
+        expires_in = app.config.get('WXN_EXPIRES_IN', 0)
+        mch_id = app.config.get('WXN_MCH_ID')
+        mch_key = app.config.get('WXN_MCH_KEY')
+        notify_url = app.config.get('WXN_NOTIFY_URL')
+        mch_key_file = app.config.get('WXN_MCH_KEY_FILE')
+        mch_cert_file = app.config.get('WXN_MCH_CERT_FILE')
+        app_id = app.config.get('WXN_APP_ID')
+        app_secret = app.config.get('WXN_APP_SECRET')
 
         if token:
             self.msg = WechatMsg(token, sender, expires_in, debug=debug)

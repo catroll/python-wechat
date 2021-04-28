@@ -42,44 +42,44 @@
 参数
 ~~~~~~~~~~
 
--  ``WEIXIN_TOKEN`` 必填，微信主动推送消息的TOKEN
--  ``WEIXIN_SENDER`` 选填，微信发送消息的发送者
--  ``WEIXIN_EXPIRES_IN`` 选填，微信推送消息的有效时间
--  ``WEIXIN_MCH_ID`` 必填，微信商户ID，纯数字
--  ``WEIXIN_MCH_KEY`` 必填，微信商户KEY
--  ``WEIXIN_NOTIFY_URL`` 必填，微信回调地址
--  ``WEIXIN_MCH_KEY_FILE`` 可选，如果需要用退款等需要证书的api，必选
--  ``WEIXIN_MCH_CERT_FILE`` 可选
--  ``WEIXIN_APP_ID`` 必填，微信公众号appid
--  ``WEIXIN_APP_SECRET`` 必填，微信公众号appkey
+-  ``WXN_TOKEN`` 必填，微信主动推送消息的TOKEN
+-  ``WXN_SENDER`` 选填，微信发送消息的发送者
+-  ``WXN_EXPIRES_IN`` 选填，微信推送消息的有效时间
+-  ``WXN_MCH_ID`` 必填，微信商户ID，纯数字
+-  ``WXN_MCH_KEY`` 必填，微信商户KEY
+-  ``WXN_NOTIFY_URL`` 必填，微信回调地址
+-  ``WXN_MCH_KEY_FILE`` 可选，如果需要用退款等需要证书的api，必选
+-  ``WXN_MCH_CERT_FILE`` 可选
+-  ``WXN_APP_ID`` 必填，微信公众号appid
+-  ``WXN_APP_SECRET`` 必填，微信公众号appkey
 
 上面参数的必填都是根据具体开启的功能有关,
-如果你只需要微信登陆，就只要选择 ``WEIXIN_APP_ID`` ``WEIXIN_APP_SECRET``
+如果你只需要微信登陆，就只要选择 ``WXN_APP_ID`` ``WXN_APP_SECRET``
 
 -  微信消息
 
-   -  ``WEIXIN_TOKEN``
-   -  ``WEIXIN_SENDER``
-   -  ``WEIXIN_EXPIRES_IN``
+   -  ``WXN_TOKEN``
+   -  ``WXN_SENDER``
+   -  ``WXN_EXPIRES_IN``
 
 -  微信登陆
 
-   -  ``WEIXIN_APP_ID``
-   -  ``WEIXIN_APP_SECRET``
+   -  ``WXN_APP_ID``
+   -  ``WXN_APP_SECRET``
 
 -  微信公众平台
 
-   -  ``WEIXIN_APP_ID``
-   -  ``WEIXIN_APP_SECRET``
+   -  ``WXN_APP_ID``
+   -  ``WXN_APP_SECRET``
 
 -  微信支付
 
-   -  ``WEIXIN_APP_ID``
-   -  ``WEIXIN_MCH_ID``
-   -  ``WEIXIN_MCH_KEY``
-   -  ``WEIXIN_NOTIFY_URL``
-   -  ``WEIXIN_MCH_KEY_FILE``
-   -  ``WEIXIN_MCH_CERT_FILE``
+   -  ``WXN_APP_ID``
+   -  ``WXN_MCH_ID``
+   -  ``WXN_MCH_KEY``
+   -  ``WXN_NOTIFY_URL``
+   -  ``WXN_MCH_KEY_FILE``
+   -  ``WXN_MCH_CERT_FILE``
 
 初始化
 ~~~~~~~
@@ -102,7 +102,7 @@
 
     # 具体导入配
     # 根据需求导入仅供参考
-    app.config.fromobject(dict(WEIXIN_APP_ID='', WEIXIN_APP_SECRET=''))
+    app.config.fromobject(dict(WXN_APP_ID='', WXN_APP_SECRET=''))
 
 
     # 初始化微信
@@ -116,7 +116,7 @@
 .. code-block:: python
 
     # 根据需求导入仅供参考
-    config = dict(WEIXIN_APP_ID='', WEIXIN_APP_SECRET='')
+    config = dict(WXN_APP_ID='', WXN_APP_SECRET='')
     wechat = Wechat(config)
 
 微信消息

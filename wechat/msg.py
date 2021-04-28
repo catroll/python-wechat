@@ -115,7 +115,7 @@ class WechatMsg(WechatBase):
             raise RuntimeError('username is missing')
         sender = sender or self.sender
         if not sender:
-            raise RuntimeError('WEIXIN_SENDER or sender argument is missing')
+            raise RuntimeError('WXN_SENDER or sender argument is missing')
 
         if type == 'text':
             content = kwargs.get('content', '')
