@@ -413,5 +413,4 @@ class WechatMP(WechatBase):
         kwargs.setdefault('data', data)
         url and kwargs.setdefault('url', url)
         miniprogram and kwargs.setdefault('miniprogram', miniprogram)
-        # print kwargs
         return self.post('/message/template/send', kwargs)
