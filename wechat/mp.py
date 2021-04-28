@@ -1,14 +1,10 @@
-import hashlib
-import json
 import logging
 import os
-import random
-import string
 import time
 
 import requests
 
-from .base import WechatError
+from .base import WechatError, sha1, random_string
 
 LOG = logging.getLogger(__name__)
 DEFAULT_DIR = '/tmp'
@@ -70,25 +66,22 @@ class WechatMP(object):
         self.ac_callback = ac_callback
         self.jt_callback = jt_callback
 
-    def fetch(self, method, url, params=None, data=None, headers=None):
-        req = requests.Request(method, url, params=params,
-                               data=data, headers=headers)
+    def fetch(self, method, url, params=None, data=None, json=None, headers=None):
+        req = requests.Request(method, url, params=params, data=data, json=json, headers=headers)
         prepped = req.prepare()
         resp = self.session.send(prepped, timeout=20)
-        data = resp.json()
-
+        ret = resp.json()
         LOG.debug('%s %s', method, url)
         LOG.debug('Headers: %s', headers)
         LOG.debug('Params: %s', params)
         LOG.debug('Data: %s', data)
-        LOG.debug('Response: %s', data)
-
-        if data.get('errcode'):
-            msg = "%(errcode)d %(errmsg)s" % data
+        LOG.debug('Response: %s', ret)
+        if ret.get('errcode'):
+            msg = '%(errcode)d %(errmsg)s' % ret
             raise WechatMPError(msg)
-        return data
+        return ret
 
-    def get(self, path, params=None, token=True, prefix='/cgi-bin'):
+    def request(self, path, params=None, data=None, json=None, headers=None, token=True, prefix='/cgi-bin'):
         if path.startswith('http'):
             url = path
         else:
@@ -96,23 +89,15 @@ class WechatMP(object):
         params = {} if not params else params
         if token:
             params.setdefault('access_token', self.access_token)
-        return self.fetch('GET', url, params)
+        method = 'POST' if data or json else 'GET'
+        return self.fetch(method, url, params, data, json, headers)
 
-    def post(self, path, data, prefix='/cgi-bin', json_encode=True, token=True):
-        if path.startswith('http'):
-            url = path
-        else:
-            url = '{0}{1}{2}'.format(self.api_uri, prefix, path)
-        params = {}
-        if token:
-            params.setdefault('access_token', self.access_token)
-        headers = {}
-        if json_encode:
-            # data = json.dumps(data, ensure_ascii=False)
-            data = json.dumps(data)
-            headers['Content-Type'] = 'application/json;charset=UTF-8'
-        # print url, params, headers, data
-        return self.fetch('POST', url, params=params, data=data, headers=headers)
+    def get(self, path, params=None, token=True, prefix='/cgi-bin'):
+        return self.request(path, params=params, token=token, prefix=prefix)
+
+    def post(self, path, data, token=True, prefix='/cgi-bin'):
+        headers = {'Content-Type': 'application/json;charset=UTF-8'}
+        return self.request(path, json=data, headers=headers, token=token, prefix=prefix)
 
     @property
     def access_token(self):
@@ -156,7 +141,7 @@ class WechatMP(object):
                 int(os.path.getmtime(self.jt_path)) < timestamp:
             params = dict()
             params.setdefault('type', 'jsapi')
-            data = self.get('/ticket/getticket', params, True)
+            data = self.get('/ticket/getticket', params)
             with open(self.jt_path, 'wb') as fp:
                 fp.write(data['ticket'].encode('utf-8'))
             os.utime(self.jt_path, (timestamp, timestamp + data['expires_in'] - 600))
@@ -164,8 +149,7 @@ class WechatMP(object):
 
     @property
     def nonce_str(self):
-        char = string.ascii_letters + string.digits
-        return ''.join(random.choice(char) for _ in range(32))
+        return random_string(16)
 
     def jsapi_sign(self, **kwargs):
         """
@@ -179,7 +163,7 @@ class WechatMP(object):
         LOG.debug('sign params: %r', kwargs)
         raw = [(k, kwargs[k]) for k in sorted(kwargs.keys())]
         s = '&'.join('='.join(kv) for kv in raw if kv[1])
-        sign = hashlib.sha1(s.encode('utf-8')).hexdigest().lower()
+        sign = sha1(s.encode('utf-8'))
         return dict(sign=sign, timestamp=timestamp, noncestr=nonce_str, appId=self.app_id)
 
     def groups_create(self, name):
@@ -319,20 +303,20 @@ class WechatMP(object):
         )
         return self.post('/qrcode/create', data)
 
-    def qrcode_create_limit(self, input):
+    def qrcode_create_limit(self, scene):
         """
         创建qrcode限制方式
         """
         data = dict()
-        if isinstance(input, int):
+        if isinstance(scene, int):
             data['action_name'] = 'QR_LIMIT_SCENE'
             data['action_info'] = dict(scene=dict(
-                scene_id=input,
+                scene_id=scene,
             ))
-        elif isinstance(input, str):
+        elif isinstance(scene, str):
             data['action_name'] = 'QR_LIMIT_STR_SCENE'
             data['action_info'] = dict(scene=dict(
-                scene_str=input,
+                scene_str=scene,
             ))
         else:
             raise ValueError('invalid type')
@@ -418,11 +402,11 @@ class WechatMP(object):
         """
         发送模板消息
 
-        :paramas template_id: 模板id
+        :params template_id: 模板id
         :params touser: openid
         :params data: 模板消息对应的内容跟颜色
         :params url: 跳转地址
-        :parms miniprogram: 小程序跳转相关
+        :params miniprogram: 小程序跳转相关
         """
         kwargs.setdefault('template_id', template_id)
         kwargs.setdefault('touser', touser)

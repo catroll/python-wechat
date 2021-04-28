@@ -1,17 +1,12 @@
 import logging
-import urllib.parse
 
 import requests
 
-from .base import WechatError
+from .base import WechatError, urlencode
 
 LOG = logging.getLogger(__name__)
 
 __all__ = 'WechatAuthError', 'WechatAuth'
-
-
-def urlencode(url):
-    return urllib.parse.quote_plus(url)
 
 
 class WechatAuthError(WechatError):

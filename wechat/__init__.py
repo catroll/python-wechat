@@ -3,8 +3,8 @@
 
 from collections import namedtuple
 
-from .base import WechatError
 from .auth import WechatAuth
+from .base import WechatError
 from .mp import WechatMP
 from .msg import WechatMsg
 from .pay import WechatPay

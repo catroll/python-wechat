@@ -1,8 +1,7 @@
-import hashlib
 import time
 from datetime import datetime
 
-from .base import WechatError, xml2dict
+from .base import WechatError, sha1, xml2dict
 
 __all__ = 'WechatMsgError', 'WechatMsg'
 
@@ -34,7 +33,7 @@ class WechatMsg(object):
 
         values = [self.token, str(timestamp), str(nonce)]
         s = ''.join(sorted(values))
-        hsh = hashlib.sha1(s.encode('utf-8')).hexdigest()
+        hsh = sha1(s.encode('utf-8'))
         return signature == hsh
 
     def parse(self, content):
@@ -191,40 +190,35 @@ def text_reply(username, sender, content):
 
 def music_reply(username, sender, **kwargs):
     kwargs['shared'] = _shared_reply(username, sender, 'music')
-    return (
-        '<xml>'
-        '%(shared)s'
-        '<Music>'
-        '<Title><![CDATA[%(title)s]]></Title>'
-        '<Description><![CDATA[%(description)s]]></Description>'
-        '<MusicUrl><![CDATA[%(music_url)s]]></MusicUrl>'
-        '<HQMusicUrl><![CDATA[%(hq_music_url)s]]></HQMusicUrl>'
-        '</Music>'
-        '</xml>'
-    ) % kwargs
+    return ('<xml>'
+            '%(shared)s'
+            '<Music>'
+            '<Title><![CDATA[%(title)s]]></Title>'
+            '<Description><![CDATA[%(description)s]]></Description>'
+            '<MusicUrl><![CDATA[%(music_url)s]]></MusicUrl>'
+            '<HQMusicUrl><![CDATA[%(hq_music_url)s]]></HQMusicUrl>'
+            '</Music>'
+            '</xml>') % kwargs
 
 
 def news_reply(username, sender, *items):
-    item_template = (
-        '<item>'
-        '<Title><![CDATA[%(title)s]]></Title>'
-        '<Description><![CDATA[%(description)s]]></Description>'
-        '<PicUrl><![CDATA[%(picurl)s]]></PicUrl>'
-        '<Url><![CDATA[%(url)s]]></Url>'
-        '</item>'
-    )
+    item_template = ('<item>'
+                     '<Title><![CDATA[%(title)s]]></Title>'
+                     '<Description><![CDATA[%(description)s]]></Description>'
+                     '<PicUrl><![CDATA[%(picurl)s]]></PicUrl>'
+                     '<Url><![CDATA[%(url)s]]></Url>'
+                     '</item>')
     articles = [item_template % o for o in items]
-    return (
-        '<xml>'
-        '%(shared)s'
-        '<ArticleCount>%(count)d</ArticleCount>'
-        '<Articles>%(articles)s</Articles>'
-        '</xml>'
-    ) % {
+    kwargs = {
         'shared': _shared_reply(username, sender, 'news'),
         'count': len(items),
         'articles': ''.join(articles)
     }
+    return ('<xml>'
+            '%(shared)s'
+            '<ArticleCount>%(count)d</ArticleCount>'
+            '<Articles>%(articles)s</Articles>'
+            '</xml>') % kwargs
 
 
 def transfer_customer_service_reply(username, sender, service_account):
@@ -252,27 +246,25 @@ def voice_reply(username, sender, media_id):
 
 def video_reply(username, sender, **kwargs):
     kwargs['shared'] = _shared_reply(username, sender, 'video')
-    return (
-        '<xml>'
-        '%(shared)s'
-        '<Video>'
-        '<MediaId><![CDATA[%(media_id)s]]></MediaId>'
-        '<Title><![CDATA[%(title)s]]></Title>'
-        '<Description><![CDATA[%(description)s]]></Description>'
-        '</Video>'
-        '</xml>'
-    ) % kwargs
+    return ('<xml>'
+            '%(shared)s'
+            '<Video>'
+            '<MediaId><![CDATA[%(media_id)s]]></MediaId>'
+            '<Title><![CDATA[%(title)s]]></Title>'
+            '<Description><![CDATA[%(description)s]]></Description>'
+            '</Video>'
+            '</xml>') % kwargs
 
 
 def _shared_reply(username, sender, type):
-    return (
-        '<ToUserName><![CDATA[%(username)s]]></ToUserName>'
-        '<FromUserName><![CDATA[%(sender)s]]></FromUserName>'
-        '<CreateTime>%(timestamp)d</CreateTime>'
-        '<MsgType><![CDATA[%(type)s]]></MsgType>'
-    ) % {
+    template = ('<ToUserName><![CDATA[%(username)s]]></ToUserName>'
+                '<FromUserName><![CDATA[%(sender)s]]></FromUserName>'
+                '<CreateTime>%(timestamp)d</CreateTime>'
+                '<MsgType><![CDATA[%(type)s]]></MsgType>')
+    kwargs = {
         'username': username,
         'sender': sender,
         'type': type,
         'timestamp': int(time.time()),
     }
+    return template % kwargs

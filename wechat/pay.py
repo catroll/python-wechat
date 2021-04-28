@@ -1,13 +1,9 @@
-import hashlib
-import hmac
 import logging
-import random
-import string
 import time
 
 import requests
 
-from .base import WechatError, dict2xml, xml2dict
+from .base import WechatError, dict2xml, xml2dict, md5, hmac_sha256, random_string
 
 LOG = logging.getLogger(__name__)
 
@@ -42,9 +38,12 @@ class WechatPay(object):
         self.sess = requests.Session()
 
     @property
+    def timestamp(self):
+        return str(int(time.time()))
+
+    @property
     def nonce_str(self):
-        char = string.ascii_letters + string.digits
-        return ''.join(random.choice(char) for _ in range(32))
+        return random_string(32)
 
     def sign(self, raw, sign_method=None):
         sign_method = sign_method or self.sign_method
@@ -57,12 +56,10 @@ class WechatPay(object):
         return sign
 
     def _sign_md5(self, content):
-        return hashlib.md5(content.encode('utf-8')).hexdigest().upper()
+        return md5(content)
 
     def _sign_hmac_sha256(self, content):
-        return hmac.new(self.mch_key.encode('utf-8'),
-                        msg=content.encode('utf-8'),
-                        digestmod=hashlib.sha256).hexdigest().upper()
+        return hmac_sha256(self.mch_key.encode('utf-8'), content.encode('utf-8'))
 
     def check(self, data):
         sign = data.pop('sign')
@@ -74,18 +71,20 @@ class WechatPay(object):
         data.setdefault('mch_id', self.mch_id)
         data.setdefault('nonce_str', self.nonce_str)
         data.setdefault('sign', self.sign(data))
-
+        data_xml = dict2xml(data)
+        LOG.debug('Request %s: %s', url, data_xml)
         if use_cert:
-            resp = self.sess.post(url, data=dict2xml(data), cert=(self.cert, self.key))
+            resp = self.sess.post(url, data=data_xml.encode('utf-8'), cert=(self.cert, self.key))
         else:
-            resp = self.sess.post(url, data=dict2xml(data))
+            resp = self.sess.post(url, data=data_xml.encode('utf-8'))
         content = resp.content.decode('utf-8')
+        LOG.debug('Response: %s\n%s', '=' * 30, content)
         if 'return_code' in content:
             data = xml2dict(content)
             if data['return_code'] == FAIL:
-                raise WechatPayError(data['return_msg'])
+                raise WechatPayError(data['return_msg'], resp=data)
             if 'result_code' in data and data['result_code'] == FAIL:
-                raise WechatPayError(data['err_code_des'])
+                raise WechatPayError(data['err_code_des'], resp=data)
             return data
         return content
 
@@ -120,10 +119,11 @@ class WechatPay(object):
             raise WechatPayError('trade_type为NATIVE时，product_id为必填参数')
 
         data.setdefault('notify_url', self.notify_url)
+
         raw = self._fetch(url, data)
         return raw
 
-    def jsapi(self, **kwargs):
+    def order_jsapi(self, **kwargs):
         """
         生成给JavaScript调用的数据
         详细规则参考 https://pay.weixin.qq.com/wiki/doc/api/jsapi.php?chapter=7_7&index=6
@@ -131,13 +131,41 @@ class WechatPay(object):
         kwargs.setdefault('trade_type', 'JSAPI')
         raw = self.unified_order(**kwargs)
         package = 'prepay_id=%s' % raw['prepay_id']
-        timestamp = str(int(time.time()))
-        nonce_str = self.nonce_str
-        raw = dict(appId=self.app_id, timeStamp=timestamp,
-                   nonceStr=nonce_str, package=package, signType='MD5')
+        raw = dict(appId=self.app_id, timeStamp=self.timestamp,
+                   nonceStr=self.nonce_str, package=package,
+                   signType=SIGN_METHODS[self.sign_method])
         sign = self.sign(raw)
-        return dict(package=package, appId=self.app_id, signType='MD5',
-                    timeStamp=timestamp, nonceStr=nonce_str, sign=sign)
+        raw['paySign'] = sign
+        return raw
+
+    def order_h5(self, **kwargs):
+        kwargs.setdefault('trade_type', 'MWEB')
+        return self.unified_order(**kwargs)
+
+    def order_qr(self, **kwargs):
+        kwargs.setdefault('trade_type', 'NATIVE')
+        return self.unified_order(**kwargs)
+
+    def qrcode_url(self, product_id, shorten=False):
+        params = {
+            'appid': self.app_id,
+            'mch_id': self.mch_id,
+            'product_id': product_id,
+            'time_stamp': self.timestamp,
+            'nonce_str': self.nonce_str,
+        }
+        params['sign'] = self.sign(params)
+        text = ('weixin://wxpay/bizpayurl?sign=%(sign)s&appid=%(appid)s&mch_id=%(mch_id)s'
+                '&product_id=%(product_id)s&time_stamp=%(time_stamp)s&nonce_str=%(nonce_str)s') % params
+        if shorten:
+            return self.qrcode_url_shorten(long_url=urlencode(text))
+        return text
+
+    def qrcode_url_shorten(self, **data):
+        url = self.PAY_HOST + '/tools/shorturl'
+        if 'long_url' not in data:
+            raise WechatPayError('缺少转换短链接接口必填参数long_url')
+        return self._fetch(url, data)['short_url']
 
     def order_query(self, **data):
         """
