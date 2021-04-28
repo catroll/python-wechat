@@ -17,7 +17,7 @@
 初始化
 ~~~~~~
 
-::
+.. code-block:: python
 
     from wechat import WechatAuth
     # from wechat.auth import WechatAuth
@@ -27,14 +27,14 @@
 引导用户跳转到授权页面
 ~~~~~~~~~~~~~~~~~~~~~~
 
-::
+.. code-block:: python
 
     url = auth.authorize("http://code.show/login/wechat/callback", "snsapi_base")
 
 通过code换取网页授权access_token
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-::
+.. code-block:: python
 
     data = auth.access_token(code)
     print data.access_token
@@ -45,7 +45,7 @@
 小程序通过js_code换取session跟openid
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-::
+.. code-block:: python
 
     data = auth.jscode2session(code)
 
@@ -55,21 +55,21 @@
 
 如果是snsapi_userinfo则需要
 
-::
+.. code-block:: python
 
     auth.user_info(data.access_token)
 
 刷新token
 ~~~~~~~~~
 
-::
+.. code-block:: python
 
     auth.refresh_token(data.refresh_token)
 
 用法
 ----
 
-::
+.. code-block:: python
 
     # -*- coding: utf-8 -*-
 
