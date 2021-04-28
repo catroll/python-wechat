@@ -65,12 +65,7 @@ class WechatPay(object):
         sign = data.pop('sign')
         return sign == self.sign(data)
 
-    def _fetch(self, url, data, use_cert=False, appid=True):
-        if appid:
-            data.setdefault('appid', self.app_id)
-        data.setdefault('mch_id', self.mch_id)
-        data.setdefault('nonce_str', self.nonce_str)
-        data.setdefault('sign', self.sign(data))
+    def _raw_fetch(self, url, data, use_cert=False):
         data_xml = dict2xml(data)
         LOG.debug('Request %s: %s', url, data_xml)
         if use_cert:
@@ -87,6 +82,22 @@ class WechatPay(object):
                 raise WechatPayError(data['err_code_des'], resp=data)
             return data
         return content
+
+    def _fetch(self, url, data, use_cert=False):
+        data.setdefault('appid', self.app_id)
+        data.setdefault('mch_id', self.mch_id)
+        data.setdefault('nonce_str', self.nonce_str)
+        data.setdefault('sign_type', SIGN_METHODS[self.sign_method])
+        data.setdefault('sign', self.sign(data))
+        return self._raw_fetch(url, data, use_cert)
+
+    def _fetch_pay(self, url, data, use_cert=False):
+        data.setdefault('mch_appid', self.app_id)
+        data.setdefault('mchid', self.mch_id)
+        data.setdefault('nonce_str', self.nonce_str)
+        data.setdefault('sign_type', SIGN_METHODS[self.sign_method])
+        data.setdefault('sign', self.sign(data))
+        return self._raw_fetch(url, data, use_cert)
 
     def reply(self, msg, ok=True):
         code = SUCCESS if ok else FAIL
@@ -323,22 +334,3 @@ class WechatPay(object):
         if 'partner_trade_no' not in data:
             raise WechatPayError('企业付款接口中, 缺少必要的参数partner_trade_no')
         return self._fetch(url, data, True)
-
-    def _fetch_pay(self, url, data, use_cert=False):
-        data.setdefault('mch_appid', self.app_id)
-        data.setdefault('mchid', self.mch_id)
-        data.setdefault('nonce_str', self.nonce_str)
-        data.setdefault('sign', self.sign(data))
-        if use_cert:
-            resp = self.sess.post(url, data=dict2xml(data), cert=(self.cert, self.key))
-        else:
-            resp = self.sess.post(url, data=dict2xml(data))
-        content = resp.content.decode('utf-8')
-        if 'return_code' in content:
-            data = xml2dict(content)
-            if data['return_code'] == FAIL:
-                raise WechatPayError(data['return_msg'])
-            if 'result_code' in content and data['result_code'] == FAIL:
-                raise WechatPayError(data['err_code_des'])
-            return data
-        return content
