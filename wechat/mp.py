@@ -163,7 +163,7 @@ class WechatMP(WechatBase):
         LOG.debug('sign params: %r', kwargs)
         raw = [(k, kwargs[k]) for k in sorted(kwargs.keys())]
         s = '&'.join('='.join(kv) for kv in raw if kv[1])
-        sign = sha1(s.encode('utf-8'))
+        sign = sha1(s)
         return dict(sign=sign, timestamp=timestamp, noncestr=nonce_str, appId=self.app_id)
 
     def groups_create(self, name):

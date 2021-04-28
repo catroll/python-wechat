@@ -60,7 +60,7 @@ class WechatPay(WechatBase):
         return md5(content)
 
     def _sign_hmac_sha256(self, content):
-        return hmac_sha256(self.mch_key.encode('utf-8'), content.encode('utf-8'))
+        return hmac_sha256(self.mch_key, content)
 
     def check(self, data):
         sign = data.pop('sign')
