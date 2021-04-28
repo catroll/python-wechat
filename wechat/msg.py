@@ -7,8 +7,7 @@ __all__ = 'WechatMsgError', 'WechatMsg'
 
 
 class WechatMsgError(WechatError):
-    def __init__(self, msg):
-        super(WechatMsgError, self).__init__(msg)
+    pass
 
 
 class WechatMsg(object):

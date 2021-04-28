@@ -11,8 +11,7 @@ __all__ = 'WechatPayError', 'WechatPay'
 
 
 class WechatPayError(WechatError):
-    def __init__(self, msg):
-        super(WechatPayError, self).__init__(msg)
+    pass
 
 
 FAIL = 'FAIL'

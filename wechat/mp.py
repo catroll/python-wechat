@@ -13,8 +13,7 @@ __all__ = 'WechatMPError', 'WechatMP'
 
 
 class WechatMPError(WechatError):
-    def __init__(self, msg):
-        super(WechatMPError, self).__init__(msg)
+    pass
 
 
 class WechatMP(object):
@@ -78,7 +77,7 @@ class WechatMP(object):
         LOG.debug('Response: %s', ret)
         if ret.get('errcode'):
             msg = '%(errcode)d %(errmsg)s' % ret
-            raise WechatMPError(msg)
+            raise WechatMPError(msg, resp=ret)
         return ret
 
     def request(self, path, params=None, data=None, json=None, headers=None, token=True, prefix='/cgi-bin'):

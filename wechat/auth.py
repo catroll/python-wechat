@@ -10,8 +10,7 @@ __all__ = 'WechatAuthError', 'WechatAuth'
 
 
 class WechatAuthError(WechatError):
-    def __init__(self, msg):
-        super(WechatAuthError, self).__init__(msg)
+    pass
 
 
 class WechatAuth(object):
@@ -47,7 +46,7 @@ class WechatAuth(object):
         if 'errcode' in data and data['errcode']:
             msg = '%(errcode)d %(errmsg)s' % data
             LOG.debug('request %s, error: %s', url, msg)
-            raise WechatAuthError(msg)
+            raise WechatAuthError(msg, resp=data)
         return data
 
     def authorize(self, redirect_uri, scope='snsapi_base', state=None):
