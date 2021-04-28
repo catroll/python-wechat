@@ -12,11 +12,6 @@ import requests
 
 from .base import WechatError
 
-try:
-    from flask import request
-except Exception:
-    request = None
-
 from lxml import etree
 
 __all__ = ('WechatPayError', 'WechatPay')
@@ -109,9 +104,8 @@ class WechatPay(object):
     def unified_order(self, **data):
         """
         统一下单
-        out_trade_no、body、total_fee、trade_type必填
+        out_trade_no、body、total_fee、trade_type、spbill_create_ip必填
         app_id, mchid, nonce_str自动填写
-        spbill_create_ip 在flask框架下可以自动填写, 非flask框架需要主动传入此参数
         """
         url = self.PAY_HOST + '/pay/unifiedorder'
 
@@ -124,6 +118,8 @@ class WechatPay(object):
             raise WechatPayError('缺少统一支付接口必填参数total_fee')
         if 'trade_type' not in data:
             raise WechatPayError('缺少统一支付接口必填参数trade_type')
+        if 'spbill_create_ip' not in data:
+            raise WechatPayError('缺少统一支付接口必填参数spbill_create_ip')
 
         # 关联参数
         if data['trade_type'] == 'JSAPI' and 'openid' not in data:
@@ -234,7 +230,7 @@ class WechatPay(object):
         """
         企业付款到零钱
         """
-        url = 'https://api.mch.weixin.qq.com/mmpaymkttransfers/promotion/transfers'
+        url = self.PAY_HOST + '/mmpaymkttransfers/promotion/transfers'
         if not self.key or not self.cert:
             raise WechatPayError('企业接口需要双向证书')
         if 'partner_trade_no' not in data:
@@ -250,7 +246,7 @@ class WechatPay(object):
 
     def pay_individual_to_card(self, **data):
         """企业付款到银行卡"""
-        url = 'https://api.mch.weixin.qq.com/mmpaysptrans/pay_bank'
+        url = self.PAY_HOST + '/mmpaysptrans/pay_bank'
         if not self.key or not self.cert:
             raise WechatPayError('企业接口需要双向证书')
         if 'partner_trade_no' not in data:
@@ -267,7 +263,7 @@ class WechatPay(object):
 
     def pay_individual_bank_query(self, **data):
         """企业付款到银行卡查询"""
-        url = 'https://api.mch.weixin.qq.com/mmpaysptrans/query_bank'
+        url = self.PAY_HOST + '/mmpaysptrans/query_bank'
         if not self.key or not self.cert:
             raise WechatPayError('企业接口需要双向证书'')
         if 'partner_trade_no' not in data:
@@ -276,7 +272,7 @@ class WechatPay(object):
 
     def pay_individual_query(self, **data):
         """企业付款到零钱查询"""
-        url = 'https://api.mch.weixin.qq.com/mmpaymkttransfers/gettransferinfo'
+        url = self.PAY_HOST + '/mmpaymkttransfers/gettransferinfo'
         if not self.key or not self.cert:
             raise WechatPayError('企业接口需要双向证书'')
         if 'partner_trade_no' not in data:

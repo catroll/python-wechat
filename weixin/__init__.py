@@ -9,7 +9,7 @@ from .mp import WechatMP
 from .msg import WechatMsg
 from .pay import WechatPay
 
-__all__ = ('Wechat')
+__all__ = ('Wechat',)
 __author__ = 'Weicheng Zou <zwczou@gmail.com>'
 __version__ = '0.5.7'
 
