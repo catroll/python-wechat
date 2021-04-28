@@ -245,7 +245,9 @@ class WechatPay(object):
         return self._fetch_pay(url, data, True)
 
     def pay_individual_to_card(self, **data):
-        """企业付款到银行卡"""
+        """
+        企业付款到银行卡
+        """
         url = self.PAY_HOST + '/mmpaysptrans/pay_bank'
         if not self.key or not self.cert:
             raise WechatPayError('企业接口需要双向证书')
@@ -262,7 +264,9 @@ class WechatPay(object):
         return self._fetch(url, data, True, False)
 
     def pay_individual_bank_query(self, **data):
-        """企业付款到银行卡查询"""
+        """
+        企业付款到银行卡查询
+        """
         url = self.PAY_HOST + '/mmpaysptrans/query_bank'
         if not self.key or not self.cert:
             raise WechatPayError('企业接口需要双向证书'')
@@ -271,7 +275,9 @@ class WechatPay(object):
         return self._fetch(url, data, True, False)
 
     def pay_individual_query(self, **data):
-        """企业付款到零钱查询"""
+        """
+        企业付款到零钱查询
+        """
         url = self.PAY_HOST + '/mmpaymkttransfers/gettransferinfo'
         if not self.key or not self.cert:
             raise WechatPayError('企业接口需要双向证书'')

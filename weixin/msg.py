@@ -201,7 +201,7 @@ class WechatMsg(object):
                    'user_pay_from_pay_cell', 'user_view_card', 'user_enter_session_from_card',
                    'card_sku_remind']:
             return self.register('event', key)
-        raise AttributeError('invalid attribute '' + key + ''')
+        raise AttributeError('invalid attribute "%s"' % key)
 
 
 def text_reply(username, sender, content):
