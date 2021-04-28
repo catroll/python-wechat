@@ -77,19 +77,19 @@ class WechatAuth(object):
         :param state: 认证成功后会原样带上此字段
         """
         url = (
-                  'https://open.weixin.qq.com/connect/oauth2/authorize'
-                  '?appid=%(appid)s'
-                  '&redirect_uri=%(redirect_uri)s'
-                  '&response_type=code'
-                  '&scope=%(scope)s'
-                  '&state=%(state)s'
-                  '#wechat_redirect'
-              ) % {
-                  'appid': self.app_id,
-                  'redirect_uri': urlencode(redirect_uri),
-                  'scope': scope,
-                  'state': state,
-              }
+            'https://open.weixin.qq.com/connect/oauth2/authorize'
+            '?appid=%(appid)s'
+            '&redirect_uri=%(redirect_uri)s'
+            '&response_type=code'
+            '&scope=%(scope)s'
+            '&state=%(state)s'
+            '#wechat_redirect'
+        ) % {
+            'appid': self.app_id,
+            'redirect_uri': urlencode(redirect_uri),
+            'scope': scope,
+            'state': state,
+        }
         LOG.debug('an authorize url has been generated: %s', url)
         return url
 
