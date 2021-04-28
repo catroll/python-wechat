@@ -11,7 +11,7 @@ from .pay import WechatPay
 
 __all__ = ('Wechat',)
 __author__ = 'Weicheng Zou <zwczou@gmail.com>'
-__version__ = '2021.04.28'
+__version__ = '2021.04.29'
 
 
 StandaloneApplication = namedtuple('StandaloneApplication', ['config'])
