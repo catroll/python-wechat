@@ -3,14 +3,14 @@
 
 from datetime import datetime, timedelta
 from flask import Flask, redirect, request, url_for
-from weixin.login import WechatLogin
+from weixin.login import WechatAuth
 
 
 app = Flask(__name__)
 
 app_id = ''
 app_secret = ''
-wx_login = WechatLogin(app_id, app_secret)
+wx_login = WechatAuth(app_id, app_secret)
 
 
 @app.route("/login")
