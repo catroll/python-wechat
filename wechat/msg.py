@@ -21,7 +21,7 @@ class WechatMsg(object):
 
     def validate(self, signature, timestamp, nonce):
         if not self.token:
-            raise WechatMsgError('weixin token is missing')
+            raise WechatMsgError('wechat token is missing')
 
         if self.expires_in:
             try:

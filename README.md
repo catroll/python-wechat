@@ -1,22 +1,14 @@
-微信SDK
-======
+# 微信 SDK
 
 提供微信登陆，公众号管理，微信支付，微信消息的全套功能
 
-## 文档目录
+原项目地址: <https://github.com/zwczou/weixin-python>, 采用 BSD 协议分发。  
 
-* [快速开始](#目录)
-* [微信消息](https://github.com/zwczou/weixin-python/wiki/%E5%BE%AE%E4%BF%A1%E6%B6%88%E6%81%AF)
-* [微信支付](https://github.com/zwczou/weixin-python/wiki/%E5%BE%AE%E4%BF%A1%E6%94%AF%E4%BB%98)
-* [微信登陆](https://github.com/zwczou/weixin-python/wiki/%E5%BE%AE%E4%BF%A1%E7%99%BB%E9%99%86)
-* [微信公众平台](https://github.com/zwczou/weixin-python/wiki/%E5%BE%AE%E4%BF%A1%E5%85%AC%E4%BC%97%E5%B9%B3%E5%8F%B0)
+不过，看起来是不怎么维护的，所以，我自己 fork 了一份，自己维护。
 
-欢迎提交[Pull requests](https://github.com/zwczou/weixin-python/pulls)
-
-
-如果需要单独使用其中的某些模块，可以见[文档目录](#文档目录)的具体模块
-
-如果需要组合在一起可以参考[快速开始](#目录)
+1. 项目名称从 weixin-python 改成 python-wechat
+1. 版本从 0.5.7 修改成 2021.04.28
+1. 放弃对 Python 2.x 的兼容，只支持 3.6 以上版本！！！
 
 ## 目录
 
@@ -35,13 +27,13 @@
 
 使用pip
 
-`sudo pip install weixin-python`
+`sudo pip install python-wechat`
 
 使用easy_install
 
-`sudo easy_install weixin-python`
+`sudo easy_install python-wechat`
 
-当前版本v0.5.7
+当前版本v1.0
 
 ## 功能
 
@@ -53,7 +45,7 @@
 ## 异常
 
 父异常类名为 `WechatError`
-子异常类名分别为 `WechatLoginError` `WechatPayError` `WechatMPError` `WechatMsgError`
+子异常类名分别为 `WechatAuthError` `WechatPayError` `WechatMPError` `WechatMsgError`
 
 ## 用法
 
@@ -97,93 +89,87 @@
 
 如果使用flask
 
-```
+```py
 # -*- coding: utf-8 -*-
-
 
 from datetime import datetime, timedelta
 from flask import Flask, jsonify, request, url_for
-from weixin import Wechat, WechatError
-
+from wechat import Wechat, WechatError
 
 app = Flask(__name__)
 app.debug = True
-
 
 # 具体导入配
 # 根据需求导入仅供参考
 app.config.from_object(dict(WEIXIN_APP_ID='', WEIXIN_APP_SECRET=''))
 
-
 # 初始化微信
-weixin = Wechat()
-weixin.init_app(app)
+wechat = Wechat()
+wechat.init_app(app)
 # 或者
-# weixin = Wechat(app)
-
+# wechat = Wechat(app)
 ```
 
 如果不使用flask
 
-```
+```py
 # 根据需求导入仅供参考
 config = dict(WEIXIN_APP_ID='', WEIXIN_APP_SECRET='')
-weixin = Wechat(config)
+wechat = Wechat(config)
 ```
 
 ### 微信消息
 
 如果使用django，添加视图函数为
 
-```
-url(r'^/$', weixin.django_view_func(), name='index'),
-
+```py
+url(r'^/$', wechat.django_view_func(), name='index'),
 ```
 
 如果为flask，添加视图函数为
 
-```
-app.add_url_rule("/", view_func=weixin.view_func)
+```py
+app.add_url_rule("/", view_func=wechat.view_func)
 ```
 
 
-```
-@weixin.all
+```py
+@wechat.all
 def all(**kwargs):
-	"""
-	监听所有没有更特殊的事件
-	"""
-    return weixin.reply(kwargs['sender'], sender=kwargs['receiver'], content='all')
+    """
+    监听所有没有更特殊的事件
+    """
+    return wechat.reply(kwargs['sender'], sender=kwargs['receiver'], content='all')
 
 
-@weixin.text()
+@wechat.text()
 def hello(**kwargs):
-	"""
-	监听所有文本消息
-	"""
+    """
+    监听所有文本消息
+    """
     return "hello too"
 
 
-@weixin.text("help")
+@wechat.text("help")
 def world(**kwargs):
-	"""
-	监听help消息
-	"""
+    """
+    监听help消息
+    """
     return dict(content="hello world!")
 
 
-@weixin.subscribe
+@wechat.subscribe
 def subscribe(**kwargs):
-	"""
-	监听订阅消息
-	"""
+    """
+    监听订阅消息
+    """
     print kwargs
     return "欢迎订阅我们的公众号"
 ```
 
 ### 微信登陆
 
-```
+```py
 @app.route("/login")
 def login():
     """登陆跳转地址"""
@@ -193,7 +179,7 @@ def login():
         return redirect(next)
 
     callback = url_for("authorized", next=next, _external=True)
-    url = weixin.authorize(callback, "snsapi_base")
+    url = wechat.authorize(callback, "snsapi_base")
     return redirect(url)
 
 
@@ -204,7 +190,7 @@ def authorized():
     if not code:
         return "ERR_INVALID_CODE", 400
     next = request.args.get("next", "/")
-    data = weixin.access_token(code)
+    data = wechat.access_token(code)
     openid = data.openid
     resp = redirect(next)
     expires = datetime.now() + timedelta(days=1)
@@ -216,15 +202,13 @@ def authorized():
 
 注意: 微信网页支付的timestamp参数必须为字符串
 
-```
-
-
+```py
 @app.route("/pay/jsapi")
 def pay_jsapi():
 	"""微信网页支付请求发起"""
 	try:
-        out_trade_no = weixin.nonce_str
-        raw = weixin.jsapi(openid="openid", body=u"测试", out_trade_no=out_trade_no, total_fee=1)
+        out_trade_no = wechat.nonce_str
+        raw = wechat.jsapi(openid="openid", body=u"测试", out_trade_no=out_trade_no, total_fee=1)
         return jsonify(raw)
     except WechatError, e:
         print e.message
@@ -236,11 +220,11 @@ def pay_notify():
     """
     微信异步通知
     """
-    data = weixin.to_dict(request.data)
-    if not weixin.check(data):
-        return weixin.reply("签名验证失败", False)
+    data = wechat.to_dict(request.data)
+    if not wechat.check(data):
+        return wechat.reply("签名验证失败", False)
     # 处理业务逻辑
-    return weixin.reply("OK", True)
+    return wechat.reply("OK", True)
 
 
 if __name__ == '__main__':
@@ -256,34 +240,42 @@ if __name__ == '__main__':
 
 默认在(HOME)目录下面，如果需要更改到指定的目录，可以导入库之后修改，如下
 
-```
-import weixin
+```py
+import wechat
 
 DEFAULT_DIR = "/tmp"
 ```
 
 获取公众号唯一凭证
 
-	weixin.access_token
-
+```py
+wechat.access_token
+```
 
 获取ticket
 
-	weixin.jsapi_ticket
-
+```py
+wechat.jsapi_ticket
+```
 
 创建临时qrcode
 
-	data = weixin.qrcode_create(123, 30)
-	print weixin.qrcode_show(data.ticket)
+```py
+data = wechat.qrcode_create(123, 30)
+print wechat.qrcode_show(data.ticket)
+```
 
 创建永久性qrcode
 
-	# scene_id类型
-	weixin.qrcode_create_limit(123)
-	# scene_str类型
-	weixin.qrcode_create_limit("456")
+```py
+# scene_id类型
+wechat.qrcode_create_limit(123)
+# scene_str类型
+wechat.qrcode_create_limit("456")
+```
 
 长链接变短链接
 
-	weixin.shorturl("http://example.com/test")
+```py
+wechat.shorturl("http://example.com/test")
+```

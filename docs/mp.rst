@@ -9,7 +9,7 @@
 
 ::
 
-    from weixin.mp import WechatMP
+    from wechat.mp import WechatMP
 
     mp = WechatMP(app_id, app_secret)
 
@@ -143,5 +143,5 @@ TODO
 
 -  [ ] 素材管理
 
-.. _example/mp.py: https://github.com/zwczou/weixin-python/blob/master/example/mp.py
-.. _微信消息: https://github.com/zwczou/weixin-python/wiki/微信消息
+.. _example/mp.py: https://github.com/catroll/python-wechat/blob/master/example/mp.py
+.. _微信消息: https://github.com/catroll/python-wechat/wiki/微信消息

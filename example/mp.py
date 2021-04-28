@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 
 
-from weixin import WechatMP, WechatError
+from wechat import WechatMP, WechatError
 
 
 app_id = ''

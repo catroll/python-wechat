@@ -19,24 +19,24 @@
 
 ::
 
-    from weixin import WechatLogin
-    # from weixin.login import WechatLogin
+    from wechat import WechatAuth
+    # from wechat.auth import WechatAuth
 
-    login = WechatLogin('app_id', 'app_key')
+    auth = WechatAuth('app_id', 'app_key')
 
 引导用户跳转到授权页面
 ~~~~~~~~~~~~~~~~~~~~~~
 
 ::
 
-    url = login.authorize("http://code.show/login/weixin/callback", "snsapi_base")
+    url = auth.authorize("http://code.show/login/wechat/callback", "snsapi_base")
 
 通过code换取网页授权access_token
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 ::
 
-    data = login.access_token(code)
+    data = auth.access_token(code)
     print data.access_token
     print data.refresh_token
     print data.openid
@@ -47,7 +47,7 @@
 
 ::
 
-    data = login.jscode2session(code)
+    data = auth.jscode2session(code)
 
 
 拉取用户信息
@@ -57,14 +57,14 @@
 
 ::
 
-    login.user_info(data.access_token)
+    auth.user_info(data.access_token)
 
 刷新token
 ~~~~~~~~~
 
 ::
 
-    login.refresh_token(data.refresh_token)
+    auth.refresh_token(data.refresh_token)
 
 用法
 ----
@@ -76,14 +76,14 @@
 
     from datetime import datetime, timedelta
     from flask import Flask, redirect, request, url_for
-    from weixin.login import WechatLogin
+    from wechat.auth import WechatAuth
 
 
     app = Flask(__name__)
 
     app_id = ''
     app_secret = ''
-    wx_login = WechatLogin(app_id, app_secret)
+    auth = WechatAuth(app_id, app_secret)
 
 
     @app.route("/login")
@@ -94,7 +94,7 @@
             return redirect(next)
 
         callback = url_for("authorized", next=next, _external=True)
-        url = wx_login.authorize(callback, "snsapi_base")
+        url = auth.authorize(callback, "snsapi_base")
         return redirect(url)
 
 
@@ -104,11 +104,11 @@
         if not code:
             return "ERR_INVALID_CODE", 400
         next = request.args.get("next", "/")
-        data = wx_login.access_token(code)
+        data = auth.access_token(code)
         openid = data.openid
         resp = redirect(next)
         expires = datetime.now() + timedelta(days=1)
         resp.set_cookie("openid", openid, expires=expires)
         return resp
 
-.. _请点击: https://mp.weixin.qq.com/wiki?t=resource/res_main&id=mp1421140842&token=&lang=zh_CN
+.. _请点击: https://mp.wechat.qq.com/wiki?t=resource/res_main&id=mp1421140842&token=&lang=zh_CN

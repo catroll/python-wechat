@@ -3,14 +3,14 @@
 
 from datetime import datetime, timedelta
 from flask import Flask, redirect, request, url_for
-from weixin.login import WechatAuth
+from wechat.auth import WechatAuth
 
 
 app = Flask(__name__)
 
 app_id = ''
 app_secret = ''
-wx_login = WechatAuth(app_id, app_secret)
+auth = WechatAuth(app_id, app_secret)
 
 
 @app.route("/login")
@@ -21,7 +21,7 @@ def login():
         return redirect(next)
 
     callback = url_for("authorized", next=next, _external=True)
-    url = wx_login.authorize(callback, "snsapi_base")
+    url = auth.authorize(callback, "snsapi_base")
     return redirect(url)
 
 
@@ -31,7 +31,7 @@ def authorized():
     if not code:
         return "ERR_INVALID_CODE", 400
     next = request.args.get("next", "/")
-    data = wx_login.access_token(code)
+    data = auth.access_token(code)
     openid = data.openid
     resp = redirect(next)
     expires = datetime.now() + timedelta(days=1)

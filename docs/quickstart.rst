@@ -8,19 +8,19 @@
 
 ::
 
-    sudo pip install weixin-python
+    sudo pip install python-wechat
 
 使用easy_install
 
 ::
 
-    sudo easy_install weixin-python
+    sudo easy_install python-wechat
 
 安装开发版本
 
 ::
 
-    sudo pip install git+https://github.com/zwczou/weixin-python@dev
+    sudo pip install git+https://github.com/catroll/python-wechat@dev
 
 功能
 ----
@@ -36,7 +36,7 @@
 异常
 ~~~~~~~~~~
 
-父异常类名为 ``WechatError`` 子异常类名分别为 ``WechatLoginError``
+父异常类名为 ``WechatError`` 子异常类名分别为 ``WechatAuthError``
 ``WechatPayError`` ``WechatMPError`` ``WechatMsgError``
 
 参数
@@ -93,7 +93,7 @@
 
     from datetime import datetime, timedelta
     from flask import Flask, jsonify, request, url_for
-    from weixin import Wechat, WechatError
+    from wechat import Wechat, WechatError
 
 
     app = Flask(__name__)
@@ -106,10 +106,10 @@
 
 
     # 初始化微信
-    weixin = Wechat()
-    weixin.init_app(app)
+    wechat = Wechat()
+    wechat.init_app(app)
     # 或者
-    # weixin = Wechat(app)
+    # wechat = Wechat(app)
 
 如果不使用flask
 
@@ -117,7 +117,7 @@
 
     # 根据需求导入仅供参考
     config = dict(WEIXIN_APP_ID='', WEIXIN_APP_SECRET='')
-    weixin = Wechat(config)
+    wechat = Wechat(config)
 
 微信消息
 ~~~~~~~~
@@ -126,25 +126,25 @@
 
 ::
 
-    url(r'^/$', weixin.django_view_func(), name='index'),
+    url(r'^/$', wechat.django_view_func(), name='index'),
 
 如果为flask，添加视图函数为
 
 ::
 
-    app.add_url_rule("/", view_func=weixin.view_func)
+    app.add_url_rule("/", view_func=wechat.view_func)
 
 ::
 
-    @weixin.all
+    @wechat.all
     def all(**kwargs):
         """
         监听所有没有更特殊的事件
         """
-        return weixin.reply(kwargs['sender'], sender=kwargs['receiver'], content='all')
+        return wechat.reply(kwargs['sender'], sender=kwargs['receiver'], content='all')
 
 
-    @weixin.text()
+    @wechat.text()
     def hello(**kwargs):
         """
         监听所有文本消息
@@ -152,7 +152,7 @@
         return "hello too"
 
 
-    @weixin.text("help")
+    @wechat.text("help")
     def world(**kwargs):
         """
         监听help消息
@@ -160,7 +160,7 @@
         return dict(content="hello world!")
 
 
-    @weixin.subscribe
+    @wechat.subscribe
     def subscribe(**kwargs):
         """
         监听订阅消息
@@ -182,7 +182,7 @@
             return redirect(next)
 
         callback = url_for("authorized", next=next, _external=True)
-        url = weixin.authorize(callback, "snsapi_base")
+        url = wechat.authorize(callback, "snsapi_base")
         return redirect(url)
 
 
@@ -193,7 +193,7 @@
         if not code:
             return "ERR_INVALID_CODE", 400
         next = request.args.get("next", "/")
-        data = weixin.access_token(code)
+        data = wechat.access_token(code)
         openid = data.openid
         resp = redirect(next)
         expires = datetime.now() + timedelta(days=1)
@@ -212,8 +212,8 @@
     def pay_jsapi():
         """微信网页支付请求发起"""
         try:
-            out_trade_no = weixin.nonce_str
-            raw = weixin.jsapi(openid="openid", body=u"测试", out_trade_no=out_trade_no, total_fee=1)
+            out_trade_no = wechat.nonce_str
+            raw = wechat.jsapi(openid="openid", body=u"测试", out_trade_no=out_trade_no, total_fee=1)
             return jsonify(raw)
         except WechatError, e:
             print e.message
@@ -225,11 +225,11 @@
         """
         微信异步通知
         """
-        data = weixin.to_dict(request.data)
-        if not weixin.check(data):
-            return weixin.reply("签名验证失败", False)
+        data = wechat.to_dict(request.data)
+        if not wechat.check(data):
+            return wechat.reply("签名验证失败", False)
         # 处理业务逻辑
-        return weixin.reply("OK", True)
+        return wechat.reply("OK", True)
 
 
     if __name__ == '__main__':
@@ -248,7 +248,7 @@
 
 ::
 
-    import weixin
+    import wechat
 
     DEFAULT_DIR = "/tmp"
 
@@ -256,33 +256,33 @@
 
 ::
 
-    weixin.access_token
+    wechat.access_token
 
 获取ticket
 
 ::
 
-    weixin.jsapi_ticket
+    wechat.jsapi_ticket
 
 创建临时qrcode
 
 ::
 
-    data = weixin.qrcode_create(123, 30)
-    print weixin.qrcode_show(data.ticket)
+    data = wechat.qrcode_create(123, 30)
+    print wechat.qrcode_show(data.ticket)
 
 创建永久性qrcode
 
 ::
 
     # scene_id类型
-    weixin.qrcode_create_limit(123)
+    wechat.qrcode_create_limit(123)
     # scene_str类型
-    weixin.qrcode_create_limit("456")
+    wechat.qrcode_create_limit("456")
 
 长链接变短链接
 
 ::
 
-    weixin.shorturl("http://example.com/test")
+    wechat.shorturl("http://example.com/test")
 

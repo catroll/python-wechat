@@ -1,5 +1,5 @@
 from flask import Flask, Response, request
-from weixin.msg import WechatMsg
+from wechat.msg import WechatMsg
 
 app = Flask(__name__)
 msg = WechatMsg('e10adc3949ba59abbe56e057f20f883e', None, 0)

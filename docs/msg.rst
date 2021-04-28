@@ -4,7 +4,7 @@
 来源
 ----
 
-本模块主要代码来源于\ `lepture/flask-weixin`_
+本模块主要代码来源于\ `lepture/flask-wechat`_
 
 功能
 ----
@@ -23,8 +23,8 @@
 
 ::
 
-    from weixin import WechatMsg
-    # from weixin.msg import WechatMsg
+    from wechat import WechatMsg
+    # from wechat.msg import WechatMsg
 
     msg = WechatMsg('token')
 
@@ -179,7 +179,7 @@
 
 
     from flask import Flask
-    from weixin.msg import WechatMsg
+    from wechat.msg import WechatMsg
 
 
     app = Flask(__name__)
@@ -232,5 +232,5 @@
     if __name__ == '__main__':
         app.run(host="0.0.0.0", port=9900)
 
-.. _lepture/flask-weixin: https://github.com/lepture/flask-weixin
-.. _请点击: https://mp.weixin.qq.com/wiki?t=resource/res_main&id=mp1421140453&token=&lang=zh_CN
+.. _lepture/flask-wechat: https://github.com/lepture/flask-wechat
+.. _请点击: https://mp.wechat.qq.com/wiki?t=resource/res_main&id=mp1421140453&token=&lang=zh_CN

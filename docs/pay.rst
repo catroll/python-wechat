@@ -12,9 +12,9 @@
 
 ::
 
-    from weixin.pay import WechatPay, WechatPayError
+    from wechat.pay import WechatPay, WechatPayError
     # 或者
-    # from weixin import WechatPay, WechatError
+    # from wechat import WechatPay, WechatError
 
     pay = WechatPay('app_id', 'mch_id', 'mch_key', 'notify_url', '/path/to/key.pem', '/path/to/cert.pem') # 后两个参数可选
 
@@ -216,8 +216,8 @@ out_refund_no 商户退款单号 \* refund_id 微信退款单号
 
     # -*- coding: utf-8 -*-
 
-    # from weixin import WechatPay, WechatError
-    from weixin.pay import WechatPay, WechatPayError
+    # from wechat import WechatPay, WechatError
+    from wechat.pay import WechatPay, WechatPayError
 
 
     wx_pay = WechatPay(app_id, mch_id, mch_key, notify_url)
@@ -254,4 +254,4 @@ out_refund_no 商户退款单号 \* refund_id 微信退款单号
         app.run()
 
 
-.. _请点击: https://pay.weixin.qq.com/wiki/doc/api/jsapi.php?chapter=9_1
+.. _请点击: https://pay.wechat.qq.com/wiki/doc/api/jsapi.php?chapter=9_1

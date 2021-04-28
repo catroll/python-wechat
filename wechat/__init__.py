@@ -4,14 +4,14 @@
 from collections import namedtuple
 
 from .base import WechatError
-from .login import WechatAuth
+from .auth import WechatAuth
 from .mp import WechatMP
 from .msg import WechatMsg
 from .pay import WechatPay
 
 __all__ = ('Wechat',)
 __author__ = 'Weicheng Zou <zwczou@gmail.com>'
-__version__ = '0.5.7'
+__version__ = '2021.04.28'
 
 
 StandaloneApplication = namedtuple('StandaloneApplication', ['config'])
@@ -45,6 +45,7 @@ class Wechat(WechatAuth, WechatPay, WechatMP, WechatMsg):
         mch_cert_file = app.config.get('WEIXIN_MCH_CERT_FILE')
         app_id = app.config.get('WEIXIN_APP_ID')
         app_secret = app.config.get('WEIXIN_APP_SECRET')
+
         if token:
             WechatMsg.__init__(self, token, sender, expires_in)
         if app_id and mch_id and mch_key and notify_url:
@@ -52,12 +53,3 @@ class Wechat(WechatAuth, WechatPay, WechatMP, WechatMsg):
         if app_id and app_secret:
             WechatAuth.__init__(self, app_id, app_secret)
             WechatMP.__init__(self, app_id, app_secret)
-
-        # 兼容老版本
-        if app_id and mch_id and mch_key and notify_url:
-            self.pay = WechatPay(app_id, mch_id, mch_key, notify_url, mch_key_file, mch_cert_file)
-        if token:
-            self.msg = WechatMsg(token, sender, expires_in)
-        if app_id and app_secret:
-            self.login = WechatAuth(app_id, app_secret)
-            self.mp = WechatMP(app_id, app_secret)
