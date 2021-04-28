@@ -233,4 +233,4 @@
         app.run(host="0.0.0.0", port=9900)
 
 .. _lepture/flask-wechat: https://github.com/lepture/flask-wechat
-.. _请点击: https://mp.wechat.qq.com/wiki?t=resource/res_main&id=mp1421140453&token=&lang=zh_CN
+.. _请点击: https://mp.weixin.qq.com/wiki?t=resource/res_main&id=mp1421140453&token=&lang=zh_CN

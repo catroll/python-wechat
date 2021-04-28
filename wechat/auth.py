@@ -34,7 +34,7 @@ class WechatAuth(object):
     附：检验授权凭证（access_token）是否有效
     """
 
-    AUTH_HOST = 'https://api.wechat.qq.com'
+    AUTH_HOST = 'https://api.weixin.qq.com'
 
     def __init__(self, app_id, app_secret, debug_mode=False):
         self.sess = requests.Session()
@@ -82,7 +82,7 @@ class WechatAuth(object):
         :param state: 认证成功后会原样带上此字段
         """
         url = (
-                  'https://open.wechat.qq.com/connect/oauth2/authorize'
+                  'https://open.weixin.qq.com/connect/oauth2/authorize'
                   '?appid=%(appid)s'
                   '&redirect_uri=%(redirect_uri)s'
                   '&response_type=code'

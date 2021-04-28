@@ -254,4 +254,4 @@ out_refund_no 商户退款单号 \* refund_id 微信退款单号
         app.run()
 
 
-.. _请点击: https://pay.wechat.qq.com/wiki/doc/api/jsapi.php?chapter=9_1
+.. _请点击: https://pay.weixin.qq.com/wiki/doc/api/jsapi.php?chapter=9_1

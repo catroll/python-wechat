@@ -47,7 +47,7 @@ class WechatMP(object):
         WechatMP('app_id', 'app_secret', ac_callback=get_access_token)
     """
 
-    api_uri = 'https://api.wechat.qq.com'
+    api_uri = 'https://api.weixin.qq.com'
 
     def __init__(self, app_id, app_secret, ac_path=None, jt_path=None, ac_callback=None, jt_callback=None):
         """
@@ -342,7 +342,7 @@ class WechatMP(object):
         """
         显示qrcode
         """
-        url = 'https://mp.wechat.qq.com/cgi-bin/showqrcode'
+        url = 'https://mp.weixin.qq.com/cgi-bin/showqrcode'
         return self.get(url, dict(ticket=ticket))
 
     def shop_list(self, pageindex=1, pagesize=10):

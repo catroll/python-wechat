@@ -111,4 +111,4 @@
         resp.set_cookie("openid", openid, expires=expires)
         return resp
 
-.. _请点击: https://mp.wechat.qq.com/wiki?t=resource/res_main&id=mp1421140842&token=&lang=zh_CN
+.. _请点击: https://mp.weixin.qq.com/wiki?t=resource/res_main&id=mp1421140842&token=&lang=zh_CN

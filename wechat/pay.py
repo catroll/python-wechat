@@ -28,7 +28,7 @@ SIGN_METHODS = {
 
 
 class WechatPay(object):
-    PAY_HOST = 'https://api.mch.wechat.qq.com'
+    PAY_HOST = 'https://api.mch.weixin.qq.com'
 
     def __init__(self, app_id, mch_id, mch_key, notify_url, key=None, cert=None,
                  sign_method='hmac_sha256'):
@@ -126,7 +126,7 @@ class WechatPay(object):
     def jsapi(self, **kwargs):
         """
         生成给JavaScript调用的数据
-        详细规则参考 https://pay.wechat.qq.com/wiki/doc/api/jsapi.php?chapter=7_7&index=6
+        详细规则参考 https://pay.weixin.qq.com/wiki/doc/api/jsapi.php?chapter=7_7&index=6
         """
         kwargs.setdefault('trade_type', 'JSAPI')
         raw = self.unified_order(**kwargs)
