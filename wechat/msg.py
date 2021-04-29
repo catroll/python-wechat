@@ -1,6 +1,5 @@
 import logging
 import time
-from datetime import datetime
 
 from .base import WechatBase, WechatError, sha1, xml2dict
 
@@ -58,7 +57,7 @@ class WechatMsg(WechatBase):
             'receiver': kwargs['ToUserName'],
             'sender': kwargs['FromUserName'],
             'type': kwargs['MsgType'],
-            'time': datetime.fromtimestamp(timestamp),
+            'time': time.strftime('%Y-%m-%d %H:%M:%S', time.localtime(timestamp)),
         }
 
     def _parse_text(self, raw):
