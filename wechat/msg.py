@@ -1,9 +1,11 @@
+import logging
 import time
 from datetime import datetime
 
 from .base import WechatBase, WechatError, sha1, xml2dict
 
 __all__ = 'WechatMsgError', 'WechatMsg'
+LOG = logging.getLogger(__name__)
 
 
 class WechatMsgError(WechatError):
@@ -25,7 +27,7 @@ class WechatMsg(WechatBase):
         if self.expires_in:
             try:
                 timestamp = int(timestamp)
-            except ValueError:
+            except (TypeError, ValueError):
                 return False
             delta = time.time() - timestamp
             if delta < 0 or delta > self.expires_in:
@@ -35,14 +37,20 @@ class WechatMsg(WechatBase):
         return signature == sha1(''.join(sorted(values)))
 
     def parse(self, content):
+        """
+        解析微信公众平台推送过来的消息
+        参考文档: https://developers.weixin.qq.com/doc/offiaccount/Message_Management/Receiving_standard_messages.html
+        """
         raw = xml2dict(content)
-        formatted = self.format(raw)
-        msg_parser = getattr(self, 'parse_{0}'.format(formatted['type']), None)
-        parsed = msg_parser(raw) if callable(msg_parser) else self.parse_invalid_type(raw)
+        formatted = self._data_format(raw)
+        msg_parser = getattr(self, '_parse_{0}'.format(formatted['type']), None)
+        parsed = msg_parser(raw) if callable(msg_parser) else self._parse_invalid_type(raw)
         formatted.update(parsed)
         return formatted
 
-    def format(self, kwargs):
+    # =====================================================
+
+    def _data_format(self, kwargs):
         timestamp = int(kwargs['CreateTime'])
         return {
             'id': kwargs.get('MsgId'),
@@ -53,13 +61,13 @@ class WechatMsg(WechatBase):
             'time': datetime.fromtimestamp(timestamp),
         }
 
-    def parse_text(self, raw):
+    def _parse_text(self, raw):
         return {'content': raw['Content']}
 
-    def parse_image(self, raw):
+    def _parse_image(self, raw):
         return {'picurl': raw['PicUrl']}
 
-    def parse_location(self, raw):
+    def _parse_location(self, raw):
         return {
             'location_x': raw['Location_X'],
             'location_y': raw['Location_Y'],
@@ -67,33 +75,33 @@ class WechatMsg(WechatBase):
             'label': raw['Label'],
         }
 
-    def parse_link(self, raw):
+    def _parse_link(self, raw):
         return {
             'title': raw['Title'],
             'description': raw['Description'],
             'url': raw['url'],
         }
 
-    def parse_voice(self, raw):
+    def _parse_voice(self, raw):
         return {
             'media_id': raw['MediaId'],
             'format': raw['Format'],
             'recognition': raw['Recognition'],
         }
 
-    def parse_video(self, raw):
+    def _parse_video(self, raw):
         return {
             'media_id': raw['MediaId'],
             'thumb_media_id': raw['ThumbMediaId'],
         }
 
-    def parse_shortvideo(self, raw):
+    def _parse_shortvideo(self, raw):
         return {
             'media_id': raw['MediaId'],
             'thumb_media_id': raw['ThumbMediaId'],
         }
 
-    def parse_event(self, raw):
+    def _parse_event(self, raw):
         return {
             'event': raw.get('Event'),
             'event_key': raw.get('EventKey'),
@@ -104,8 +112,11 @@ class WechatMsg(WechatBase):
             'status': raw.get('status')
         }
 
-    def parse_invalid_type(self, raw):
+    def _parse_invalid_type(self, raw):
+        LOG.warning('Invalid Type: %s', raw['MsgType'])
         return {}
+
+    # =====================================================
 
     def reply(self, username=None, type='text', sender=None, **kwargs):
         if not username:
@@ -142,30 +153,28 @@ class WechatMsg(WechatBase):
             values = {k: kwargs[k] for k in ('media_id', 'title', 'description')}
             return video_reply(username, sender, **values)
 
-    def register(self, type, key=None, func=None):
+    # =====================================================
+
+    def register(self, msg_type, key=None, func=None):
         if func:
-            key = '*' if not key else key
-            self._registry.setdefault(type, dict())[key] = func
+            self._registry.setdefault(msg_type, dict())[key or '*'] = func
             return func
-        return self.__call__(type, key)
+        return self.__call__(msg_type, key)
 
     def __call__(self, type, key):
         def wrapper(func):
             self.register(type, key, func)
             return func
-
         return wrapper
 
-    @property
-    def all(self):
-        return self.register('*')
-
-    def text(self, key='*'):
+    def command(self, key='*'):
         return self.register('text', key)
 
     def __getattr__(self, key):
         key = key.lower()
-        if key in ['image', 'video', 'voice', 'shortvideo', 'location', 'link', 'event']:
+        if key == 'all':
+            return self.register('*')
+        if key in ['image', 'video', 'voice', 'shortvideo', 'location', 'link', 'event', 'text']:
             return self.register(key)
         if key in ['subscribe', 'unsubscribe', 'location', 'click', 'view', 'scan',
                    'scancode_push', 'scancode_waitmsg', 'pic_sysphoto',
@@ -177,6 +186,38 @@ class WechatMsg(WechatBase):
                    'card_sku_remind']:
             return self.register('event', key)
         raise AttributeError('invalid attribute "%s"' % key)
+
+    def handle(self, content):
+        try:
+            data = self.parse(content)
+        except ValueError:
+            raise WechatMsgError('parse error', content)
+
+        func = None
+        # LOG.info(self._registry.keys())
+        type_registry = self._registry.get(data['type'], dict())
+        # LOG.info(type_registry)
+
+        if data['type'] == 'text':
+            if data['content'] in type_registry:
+                func = type_registry[data['content']]
+        elif data['type'] == 'event':
+            if data['event'].lower() in type_registry:
+                func = type_registry[data['event'].lower()]
+
+        if func is None and '*' in type_registry:
+            func = type_registry['*']
+
+        if func is None and '*' in self._registry:
+            func = self._registry.get('*', dict()).get('*')
+
+        if func is None:
+            raise WechatMsgError('no func registered!')
+
+        if not callable(func):
+            raise WechatMsgError('func is invalid!')
+
+        return data, func(**data)
 
 
 def text_reply(username, sender, content):
