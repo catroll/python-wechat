@@ -32,15 +32,12 @@ class WechatMsg(WechatBase):
                 return False
 
         values = [self.token, str(timestamp), str(nonce)]
-        s = ''.join(sorted(values))
-        hsh = sha1(s.encode('utf-8'))
-        return signature == hsh
+        return signature == sha1(''.join(sorted(values)))
 
     def parse(self, content):
         raw = xml2dict(content)
         formatted = self.format(raw)
-        msg_type = formatted['type']
-        msg_parser = getattr(self, 'parse_{0}'.format(msg_type), None)
+        msg_parser = getattr(self, 'parse_{0}'.format(formatted['type']), None)
         parsed = msg_parser(raw) if callable(msg_parser) else self.parse_invalid_type(raw)
         formatted.update(parsed)
         return formatted
