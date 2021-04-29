@@ -44,10 +44,27 @@
         color: #353535;
         margin-bottom: 23px;
     }
-
 </style>
 <div class="mask"></div>
 <div class="qrbox">
     <img src="{{ img_url }}">
     <div class="sub_title">使用手机微信扫码登录</div>
 </div>
+<script>
+    window.onload = () => {
+        let xhr = new XMLHttpRequest()
+        let polling = () => {
+            xhr.open("GET", "{{ url_for('mp.view_wechat_mp_login_progress') }}?scene={{ scene }}", false)
+            xhr.send(null)
+            console.log(xhr.responseText)
+            if (xhr.responseText == '1') {
+                if (confirm('登录成功！\n\n按确认刷新页面...')) {
+                    location.reload()
+                }
+            } else {
+                setTimeout(polling, 1000)
+            }
+        }
+        setTimeout(polling, 1000)
+    }
+</script>

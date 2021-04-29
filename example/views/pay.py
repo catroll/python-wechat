@@ -145,4 +145,3 @@ def view_wechat_notify():
     data = xml2dict(request.data)
     current_app.logger.info('wechat.pay.notify: %r', data)
     return dict2xml({'return_code': 'SUCCESS', 'return_msg': 'OK'})
-

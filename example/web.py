@@ -14,6 +14,7 @@ logging.basicConfig(level=logging.DEBUG, format='%(asctime)s %(levelname)s %(mes
 
 app = Flask(__name__)
 app.config.from_pyfile('settings.py', silent=True)
+app.logger.setLevel(logging.DEBUG)
 app.app_context().push()
 
 # Attempted to generate a URL without the application context being pushed.
@@ -33,13 +34,15 @@ def wechat_verify(verify_str):
 
 @app.route('/')
 def index():
+    app.logger.debug('welcome')
     return render_template('index.html', links=[
         url_for('pay.view_wechat_demo_test'),
         url_for('pay.view_wechat_demo'),
         url_for('pay.view_wechat_jsbridge'),
         url_for('pay.view_wechat_show_bridge'),
         url_for('mp.view_wechat_share'),
-        url_for('mp.view_wechat_mp_follow'),
+        url_for('mp.view_wechat_mp_login'),
+        url_for('mp.view_wechat_mp_login_progress'),
         url_for('msg.view_wechat_receive_msg'),
     ])
 

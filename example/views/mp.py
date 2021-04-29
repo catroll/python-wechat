@@ -1,3 +1,5 @@
+import os
+
 from flask import (Blueprint, Response, current_app, redirect, render_template,
                    request, url_for)
 from wechat.base import random_string
@@ -28,13 +30,13 @@ def view_wechat_share():
     return render_template('web_wechat_share.html', bridge_params=json.dumps(data))
 
 
-@app.route('/wechat.mp.follow.action')
-def view_wechat_mp_follow():
+@app.route('/wechat.mp.login.action')
+def view_wechat_mp_login():
     # 扫描二维码，关注公众号
     # img_url = 'https://login.weixin.qq.com/qrcode/gbXPB3iomg=='
     scene = 'mp-login-' + random_string(5)
-    expire_time = 300
-    data = {"expire_seconds": expire_time, "action_name": "QR_SCENE", "action_info": {"scene": {"scene_str": scene}}}
+    expire_time = 3600
+    data = {"expire_seconds": expire_time, "action_name": "QR_STR_SCENE", "action_info": {"scene": {"scene_str": scene}}}
     try:
         # raise Exception('test error.png')
         result = current_app.wechat.mp.request('/qrcode/create', json=data)
@@ -45,4 +47,13 @@ def view_wechat_mp_follow():
         # 错误图片来源：英文维基百科
         # https://upload.wikimedia.org/wikipedia/commons/thumb/2/20/Ireland_road_sign_W_120.svg/480px-Ireland_road_sign_W_120.svg.png
         img_url = url_for('static', filename='img/error.png')
-    return render_template('web_wechat_mp_qr.html', img_url=img_url)
+    return render_template('web_wechat_mp_qr.html', img_url=img_url, scene=scene)
+
+
+@app.route('/wechat.mp.login.progress.action')
+def view_wechat_mp_login_progress():
+    scene = request.args.get('scene', '')
+    if not scene:
+        return '0'
+    path = '/tmp/.gatsby-' + scene
+    return '1' if os.path.exists(path) else '0'

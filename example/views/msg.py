@@ -1,3 +1,5 @@
+import json
+
 from flask import Blueprint, Response, current_app, request
 
 app = Blueprint('msg', __name__)
@@ -5,20 +7,27 @@ app = Blueprint('msg', __name__)
 
 @app.route('/wechat.receive.msg.action', methods=['GET', 'POST'])
 def view_wechat_receive_msg():
-    signature = request.args.get('signature')
-    timestamp = request.args.get('timestamp')
-    nonce = request.args.get('nonce')
-    if not current_app.wechat.msg.validate(signature, timestamp, nonce):
-        return 'signature failed', 400
+    current_app.logger.debug(request.args)
+    current_app.logger.debug(request.data)
 
     if request.method == 'GET':
         return request.args.get('echostr', '')
+
+    signature = request.args.get('signature')
+    timestamp = request.args.get('timestamp')
+    nonce = request.args.get('nonce')
+    current_app.logger.debug([signature, timestamp, nonce])
+    is_test_mode = signature == timestamp == nonce == None
+    if not is_test_mode and not current_app.wechat.msg.validate(signature, timestamp, nonce):
+        return 'signature failed', 400
 
     try:
         data, result = current_app.wechat.msg.handle(request.data)
     except Exception as error:
         current_app.logger.exception(error)
         return 'invalid', 400
+    current_app.logger.debug(data)
+    current_app.logger.debug(result)
 
     content = ''
     if isinstance(result, str):
@@ -44,33 +53,46 @@ def view_wechat_receive_msg():
 
 def initialize():
     @current_app.wechat.msg.all
-    def test(**kwargs):
+    def handle_all(**kwargs):
         current_app.logger.debug('all, %r', kwargs)
         return '我家住在桃花山'
 
     @current_app.wechat.msg.text
-    def text(**kwargs):
+    def handle_text(**kwargs):
         current_app.logger.debug('text, %r', kwargs)
         return dict(content='hello too!', type='text')
 
     @current_app.wechat.msg.command('hello')
-    def hello(**kwargs):
+    def handle_hello(**kwargs):
         current_app.logger.debug('hello, %r', kwargs)
         return current_app.wechat.msg.reply(
             kwargs['sender'], sender=kwargs['receiver'], content='nice to meet you!'
         )
 
     @current_app.wechat.msg.image
-    def image(**kwargs):
+    def handle_image(**kwargs):
         current_app.logger.debug('image, %r', kwargs)
         return ''
 
     @current_app.wechat.msg.subscribe
-    def subscribe(**kwargs):
+    def handle_subscribe(**kwargs):
         current_app.logger.debug('subscribe, %r', kwargs)
+        if 'event_key' in kwargs and kwargs['event_key'].startswith('mp-login-'):
+            path = '/tmp/.gatsby-' + kwargs['event_key']
+            with open(path, 'w+') as fp:
+                json.dump(kwargs, fp)
+        return ''
+
+    @current_app.wechat.msg.scan
+    def handle_scan(**kwargs):
+        current_app.logger.debug('scan, %r', kwargs)
+        if 'event_key' in kwargs and kwargs['event_key'].startswith('mp-login-'):
+            path = '/tmp/.gatsby-' + kwargs['event_key']
+            with open(path, 'w+') as fp:
+                json.dump(kwargs, fp)
         return ''
 
     @current_app.wechat.msg.unsubscribe
-    def unsubscribe(**kwargs):
+    def handle_unsubscribe(**kwargs):
         current_app.logger.debug('unsubscribe, %r', kwargs)
         return ''
