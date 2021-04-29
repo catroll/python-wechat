@@ -36,6 +36,7 @@ def index():
         url_for('pay.view_wechat_jsbridge'),
         url_for('pay.view_wechat_show_bridge'),
         url_for('share.view_wechat_share'),
+        url_for('msg.view_wechat_receive_msg'),
     ])
 
 
