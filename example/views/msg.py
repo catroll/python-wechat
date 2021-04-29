@@ -10,87 +10,67 @@ def view_wechat_receive_msg():
     nonce = request.args.get('nonce')
     if not current_app.wechat.msg.validate(signature, timestamp, nonce):
         return 'signature failed', 400
+
     if request.method == 'GET':
-        echostr = request.args.get('echostr', '')
-        return echostr
+        return request.args.get('echostr', '')
 
     try:
-        ret = current_app.wechat.msg.parse(request.data)
-    except ValueError:
+        data, result = current_app.wechat.msg.handle(request.data)
+    except Exception as error:
+        current_app.logger.exception(error)
         return 'invalid', 400
 
-    func = None
-    _registry = current_app.wechat.msg._registry.get(ret['type'], dict())
-    if ret['type'] == 'text':
-        if ret['content'] in _registry:
-            func = _registry[ret['content']]
-    elif ret['type'] == 'event':
-        if ret['event'].lower() in _registry:
-            func = _registry[ret['event'].lower()]
-
-    if func is None and '*' in _registry:
-        func = _registry['*']
-    if func is None and '*' in current_app.wechat.msg._registry:
-        func = current_app.wechat.msg._registry.get('*', dict()).get('*')
-
-    text = ''
-    if func is None:
-        text = 'failed'
-
-    if callable(func):
-        text = func(**ret)
-
     content = ''
-    if isinstance(text, basestring):
-        if text:
+    if isinstance(result, str):
+        if result.startswith('<xml>'):
+            content = result
+        elif result:
+            current_app.logger.info('回复测试 str: %r', result)
             content = current_app.wechat.msg.reply(
-                username=ret['sender'],
-                sender=ret['receiver'],
-                content=text,
+                username=data['sender'],
+                sender=data['receiver'],
+                content=result,
             )
-    elif isinstance(text, dict):
-        text.setdefault('username', ret['sender'])
-        text.setdefault('sender', ret['receiver'])
-        content = current_app.wechat.msg.reply(**text)
+    elif isinstance(result, dict):
+        current_app.logger.info('回复测试 dict: %r', result)
+        result.setdefault('username', data['sender'])
+        result.setdefault('sender', data['receiver'])
+        content = current_app.wechat.msg.reply(**result)
+    else:
+        current_app.logger.warning('Error result: %r', result)
 
     return Response(content, content_type='text/xml; charset=utf-8')
 
 
-@current_app.wechat.msg.all
-def all_test(**kwargs):
-    current_app.logger.debug(kwargs)
-    # 或者直接返回
-    # return 'all'
-    return current_app.wechat.msg.reply(
-        kwargs['sender'], sender=kwargs['receiver'], content='all'
-    )
+def initialize():
+    @current_app.wechat.msg.all
+    def test(**kwargs):
+        current_app.logger.debug('all, %r', kwargs)
+        return '我家住在桃花山'
 
+    @current_app.wechat.msg.text
+    def text(**kwargs):
+        current_app.logger.debug('text, %r', kwargs)
+        return dict(content='hello too!', type='text')
 
-@current_app.wechat.msg.text()
-def hello(**kwargs):
-    return dict(content='hello too!', type='text')
+    @current_app.wechat.msg.command('hello')
+    def hello(**kwargs):
+        current_app.logger.debug('hello, %r', kwargs)
+        return current_app.wechat.msg.reply(
+            kwargs['sender'], sender=kwargs['receiver'], content='nice to meet you!'
+        )
 
+    @current_app.wechat.msg.image
+    def image(**kwargs):
+        current_app.logger.debug('image, %r', kwargs)
+        return ''
 
-@current_app.wechat.msg.text('world')
-def world(**kwargs):
-    return current_app.wechat.msg.reply(
-        kwargs['sender'], sender=kwargs['receiver'], content='hello world!'
-    )
+    @current_app.wechat.msg.subscribe
+    def subscribe(**kwargs):
+        current_app.logger.debug('subscribe, %r', kwargs)
+        return ''
 
-
-@current_app.wechat.msg.image
-def image(**kwargs):
-    current_app.logger.debug(kwargs)
-    return ''
-
-
-@current_app.wechat.msg.subscribe
-def subscribe(**kwargs):
-    current_app.logger.debug(kwargs)
-    return ''
-
-
-@current_app.wechat.msg.unsubscribe
-def unsubscribe(**kwargs):
-    current_app.logger.debug(kwargs)
-    return ''
+    @current_app.wechat.msg.unsubscribe
+    def unsubscribe(**kwargs):
+        current_app.logger.debug('unsubscribe, %r', kwargs)
+        return ''
