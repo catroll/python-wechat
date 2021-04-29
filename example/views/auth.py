@@ -1,6 +1,6 @@
 from datetime import datetime, timedelta
 
-from flask import Blueprint, redirect, request, url_for
+from flask import Blueprint, current_app, redirect, request, url_for
 
 app = Blueprint('auth', __name__)
 
@@ -13,7 +13,7 @@ def login():
         return redirect(next)
 
     callback = url_for('authorized', next=next, _external=True)
-    url = app.wechat.auth.authorize(callback, 'snsapi_base')
+    url = current_app.wechat.auth.authorize(callback, 'snsapi_base')
     return redirect(url)
 
 
@@ -23,7 +23,7 @@ def authorized():
     if not code:
         return 'ERR_INVALID_CODE', 400
     next = request.args.get('next', '/')
-    data = app.wechat.auth.access_token(code)
+    data = current_app.wechat.auth.access_token(code)
     openid = data.openid
     resp = redirect(next)
     expires = datetime.now() + timedelta(days=1)
