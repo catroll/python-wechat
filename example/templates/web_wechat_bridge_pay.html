@@ -1,0 +1,67 @@
+<!DOCTYPE html>
+
+<html lang="zh-CN">
+  <head>
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0,minimum-scale=1.0,maximum-scale=1.0,user-scalable=no" />
+    <title>Payment</title>
+    <style>
+        pre {
+            background-color: #eee;
+            border-radius: 3px;
+            min-height: 10em;
+            white-space: pre-wrap;
+            word-wrap: break-word;
+        }
+    </style>
+</head>
+
+<body>
+    <div id="board" style="width:99%;">
+        <h1>Payment</h1>
+        <pre id="params"></pre>
+    </div>
+    <script type="text/javascript">
+        function displaySomething(msg) {
+            var ele = document.createElement('div');
+            ele.innerHTML = msg;
+            document.getElementById("board").appendChild(ele);
+        }
+        function onBridgeReady() {
+            var params = {{ bridge_params | safe }};
+            document.getElementById('params').innerHTML = JSON.stringify(params, null, 4);
+            WeixinJSBridge.invoke("getBrandWCPayRequest", params, function (res) {
+                if (res.err_msg == "get_brand_wcpay_request:ok") {
+                    // 使用以上方式判断前端返回,微信团队郑重提示：
+                    // res.err_msg 将在用户支付成功后返回 ok，但并不保证它绝对可靠。
+                }
+                displaySomething(res.err_msg);
+                if (res.err_msg == "get_brand_wcpay_request:ok") {
+                    //成功页面
+                } else if (res.err_msg == "get_brand_wcpay_request:cancel") {
+                    //成功页面
+                } else if (res.err_msg == "get_brand_wcpay_request:fail") {
+                    //成功页面
+                } else {
+                    // WTF
+                }
+            });
+        }
+        displaySomething('i am waitting...');
+        if (typeof WeixinJSBridge == "undefined") {
+            displaySomething('undefined');
+            if (document.addEventListener) {
+                document.addEventListener("WeixinJSBridgeReady", onBridgeReady, false);
+            } else if (document.attachEvent) {
+                document.attachEvent("WeixinJSBridgeReady", onBridgeReady);
+                document.attachEvent("onWeixinJSBridgeReady", onBridgeReady);
+            }
+        } else {
+            displaySomething('normal...');
+            onBridgeReady();
+        }
+    </script>
+</body>
+
+</html>

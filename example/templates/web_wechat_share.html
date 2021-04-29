@@ -1,0 +1,70 @@
+<!DOCTYPE html>
+
+<html lang="zh-CN">
+
+<head>
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport"
+        content="width=device-width, initial-scale=1.0,minimum-scale=1.0,maximum-scale=1.0,user-scalable=no" />
+    <title>URL鏈接分享測試</title>
+    <style>
+        pre {
+            background-color: #eee;
+            border-radius: 3px;
+            min-height: 10em;
+            white-space: pre-wrap;
+            word-wrap: break-word;
+        }
+    </style>
+    <script src="//res.wx.qq.com/open/js/jweixin-1.5.0.js"></script>
+</head>
+
+<body>
+    <div id="board" style="width:99%;">
+        <h1>URL鏈接分享測試</h1>
+        <img src="/static/img/test.png">
+        <pre id="params"></pre>
+    </div>
+    <script type="text/javascript">
+        function displaySomething(msg) {
+            var ele = document.createElement('div');
+            ele.innerHTML = msg;
+            document.getElementById("board").appendChild(ele);
+        }
+        displaySomething('i am waitting...');
+        var shareObj = {
+            title: document.title,
+            desc: '測試一下微信鏈接分享 by 胡昂',
+            link: location.href.split('#')[0],
+            imgUrl: location.origin + '/static/img/test.png',
+        }, wxParams = {{ bridge_params | safe }};
+        window.onload = function () {
+            wx.config(wxParams);
+            wx.ready(function () {
+                wx.updateAppMessageShareData({
+                    title: shareObj.title,
+                    desc: shareObj.desc,
+                    link: shareObj.link,
+                    imgUrl: shareObj.imgUrl,
+                    success: function () {
+                        displaySomething('分享給朋友！！');
+                    }
+                });
+                wx.updateTimelineShareData({
+                    title: shareObj.title,
+                    // 自定义“分享到朋友圈”及“分享到QQ空间”按钮的分享内容
+                    // 接口文档中没有这个字段
+                    // desc: shareObj.desc,
+                    link: shareObj.link,
+                    imgUrl: shareObj.imgUrl,
+                    success: function () {
+                        displaySomething('分享到朋友圈！！');
+                    }
+                });
+            });
+        }
+    </script>
+</body>
+
+</html>
