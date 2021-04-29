@@ -1,8 +1,10 @@
 import logging
 import os
 
-from flask import Blueprint, Flask, render_template, send_from_directory, url_for
+from flask import (Blueprint, Flask, render_template, send_from_directory,
+                   url_for)
 
+import views
 from wechat import Wechat
 
 HOST = '0.0.0.0'
@@ -12,6 +14,7 @@ logging.basicConfig(level=logging.DEBUG, format='%(asctime)s %(levelname)s %(mes
 
 app = Flask(__name__)
 app.config.from_pyfile('settings.py', silent=True)
+app.app_context().push()
 
 # Attempted to generate a URL without the application context being pushed.
 # This has to be executed when application context is available.
@@ -42,15 +45,9 @@ def index():
 
 
 def main():
-    import views
-    for i in views.__dict__.values():
-        if isinstance(i, Blueprint):
-            app.register_blueprint(i)
-    with app.app_context():
-        app.config['WXN_NOTIFY_URL'] = url_for('pay.view_wechat_notify', _external=True)
-        app.wechat = Wechat(app, debug=True)
-    # app.debug = True
-    # app.run(host=HOST, port=PORT)
+    app.wechat = Wechat(app, debug=True)
+    views.initialize()
+    app.config['WXN_NOTIFY_URL'] = url_for('pay.view_wechat_notify', _external=True)
     app.run(host=HOST, port=PORT, debug=True)
 
 
