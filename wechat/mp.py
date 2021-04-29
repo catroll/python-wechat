@@ -75,6 +75,7 @@ class WechatMP(WechatBase):
         LOG.debug('Headers: %s', headers)
         LOG.debug('Params: %s', params)
         LOG.debug('Data: %s', data)
+        LOG.debug('JSON: %s', json)
         LOG.debug('Response: %s', ret)
         if ret.get('errcode'):
             msg = '%(errcode)d %(errmsg)s' % ret
