@@ -57,9 +57,9 @@ class WechatMP(WechatBase):
         self.app_secret = app_secret
         self.session = requests.Session()
         if ac_path is None:
-            ac_path = os.path.join(DEFAULT_DIR, '.access_token')
+            ac_path = os.path.join(DEFAULT_DIR, '.access_token.' + app_id)
         if jt_path is None:
-            jt_path = os.path.join(DEFAULT_DIR, '.jsapi_ticket')
+            jt_path = os.path.join(DEFAULT_DIR, '.jsapi_ticket.' + app_id)
         self.ac_path = ac_path
         self.jt_path = jt_path
         self.ac_callback = ac_callback
